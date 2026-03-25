@@ -1,31 +1,81 @@
 /**
- * Skill Futures - Main JS
- * Premium Overhaul v2
+ * Skill Futures - Main App
+ * Professional Web Application v3 (FutureFiix Mirror)
  */
+
+// ─── App State ───────────────────────────────────────────────────────────────
+
+const AppState = {
+  isLoggedIn: localStorage.getItem('isLoggedIn') === 'true',
+  view: 'home', // 'home', 'login', 'dashboard', 'courses', 'profile'
+  user: {
+    name: 'Kabir Pathan',
+    email: 'wkhan381701@gmail.com',
+    earnings: {
+      today: '₹1,200',
+      weekly: '₹8,500',
+      monthly: '₹32,000',
+      allTime: '₹1,45,000'
+    },
+    enrolledCourses: [
+      { id: 1, title: 'Sales Mastery', progress: 85, img: 'hero-graphic.png' },
+      { id: 2, title: 'Lead Generation', progress: 40, img: 'hero-graphic.png' }
+    ]
+  }
+};
 
 // ─── Shared Components ───────────────────────────────────────────────────────
 
-const Header = `
+const Header = () => `
   <header>
     <nav class="navbar">
-      <div class="logo nav-home" style="cursor: pointer;">
+      <div class="logo nav-link" data-view="home" style="cursor: pointer;">
         <img src="logo.png" alt="Skill Futures Logo" />
         <span>Skill Futures</span>
       </div>
       <ul class="nav-links">
-        <li class="nav-home">Home</li>
+        <li class="nav-link" data-view="home">Home</li>
         <li>About Us</li>
         <li>Courses</li>
         <li>Contact Us</li>
       </ul>
       <div class="nav-actions">
-        <button id="loginBtn" class="btn btn-primary">Log in</button>
+        ${AppState.isLoggedIn 
+          ? `<button id="dashboardBtn" class="btn btn-primary">Dashboard</button>`
+          : `<button id="loginBtn" class="btn btn-primary">Log in</button>`
+        }
       </div>
     </nav>
   </header>
 `;
 
-const Footer = `
+const Sidebar = () => `
+  <aside class="sidebar">
+    <div class="sidebar-logo nav-link" data-view="home" style="cursor: pointer;">
+      <img src="logo.png" alt="Logo" />
+      <span>Skill Futures</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-link ${AppState.view === 'dashboard' ? 'active' : ''}" data-view="dashboard">
+        Dashboard
+      </li>
+      <li class="nav-link ${AppState.view === 'courses' ? 'active' : ''}" data-view="courses">
+        My Courses
+      </li>
+      <li class="nav-link ${AppState.view === 'profile' ? 'active' : ''}" data-view="profile">
+        My Profile
+      </li>
+      <li class="nav-link" data-view="affiliate">
+        Affiliate Links
+      </li>
+    </ul>
+    <div style="margin-top: auto;">
+      <button id="logoutBtn" class="btn btn-outline" style="width: 100%;">Logout</button>
+    </div>
+  </aside>
+`;
+
+const Footer = () => `
   <footer class="footer">
     <div class="footer-grid">
       <div class="footer-col">
@@ -33,211 +83,239 @@ const Footer = `
         <ul>
           <li>About Us</li>
           <li>Mission</li>
-          <li>Success Stories</li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Quick Links</h4>
         <ul>
-          <li>Refund Policy</li>
           <li>Terms & Conditions</li>
           <li>Privacy Policy</li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Get In Touch</h4>
-        <ul>
-          <li>Email: skillfuturessupport@gmail.com</li>
-          <li>Phone: +91 9548797492</li>
-          <li>Location: Moradabad, Uttar Pradesh, India</li>
-        </ul>
+          <h4>Contact</h4>
+          <p style="color: var(--text-dim); font-size: 0.9rem;">
+            Village karanpur barki madayye sarkara khas<br>
+            District Moradabad (244001) (UP)<br>
+            Phone: +91 9548797492
+          </p>
       </div>
     </div>
     <div class="footer-bottom">
-      &copy; 2026 Skill Futures. All Rights Reserved. Crafted for Success.
+      &copy; 2026 Skill Futures. All Rights Reserved.
     </div>
   </footer>
 `;
 
-// ─── Home View ───────────────────────────────────────────────────────────────
+// ─── View Templates ──────────────────────────────────────────────────────────
 
-const HomeContent = `
+const HomeView = () => `
   <section class="hero">
     <div class="hero-content">
       <h1>Crafting Careers, <span class="accent">Creating Incomes</span></h1>
-      <p>Unlock premium skills in digital marketing, finance, and online business. Join thousands of successful students globally.</p>
+      <p>Unlock premium skills in digital marketing and affiliate business. Your journey to mastery starts here.</p>
       <div class="hero-actions">
         <button class="btn btn-primary">Explore Courses</button>
-        <button class="btn btn-outline" style="margin-left: 1rem;">Join Community</button>
       </div>
     </div>
     <div class="hero-graphic">
-      <img src="hero-graphic.png" alt="Skill Futures Hero Illustration" />
+      <img src="hero-graphic.png" alt="Hero Illustration" />
     </div>
   </section>
-
   <div class="ticker-wrapper">
     <div class="ticker">
-      <span>Digital Marketing</span> • <span>Affiliate Marketing</span> • <span>E-Commerce</span> • <span>Stock Market</span> • <span>Freelancing</span> • <span>SEO Mastery</span> • <span>AdSense</span> • <span>Business Strategy</span>
+      <span>Digital Marketing</span> • <span>Sales Mastery</span> • <span>Lead Generation Mastery</span> • <span>Affiliate Marketing</span> • <span>Video Editing</span>
     </div>
   </div>
+`;
 
-  <section class="courses">
-    <h2>Our Featured Packages</h2>
+const LoginView = () => `
+  <div style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
+    <div class="course-card" style="max-width: 400px; width: 100%; text-align: left;">
+      <h2 style="margin-bottom: 1rem; text-align: left; font-size: 2rem;">Login</h2>
+      <p style="color: var(--text-dim); margin-bottom: 2rem;">Access your dashboard and courses.</p>
+      <form id="loginForm">
+        <div style="margin-bottom: 1.5rem;">
+          <label style="display: block; margin-bottom: 0.5rem;">Email ID</label>
+          <input type="email" value="wkhan381701@gmail.com" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;"/>
+        </div>
+        <div style="margin-bottom: 2rem;">
+          <label style="display: block; margin-bottom: 0.5rem;">Password</label>
+          <input type="password" value="1234@1" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;"/>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+      </form>
+    </div>
+  </div>
+`;
+
+const DashboardView = () => `
+  <div class="main-dashboard">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+      <h1>Hello, ${AppState.user.name} 👋</h1>
+      <div class="btn btn-outline">Referral Code: FF-1751</div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-title">Today's Earnings</div>
+        <div class="metric-value">${AppState.user.earnings.today}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Weekly Earnings</div>
+        <div class="metric-value">${AppState.user.earnings.weekly}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Monthly Earnings</div>
+        <div class="metric-value">${AppState.user.earnings.monthly}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">All Time Earnings</div>
+        <div class="metric-value">${AppState.user.earnings.allTime}</div>
+      </div>
+    </div>
+
+    <h2>7 Days Sales Graph</h2>
+    <div class="chart-placeholder">
+      <p style="color: var(--text-dim);">Performance Chart Integration Loading...</p>
+    </div>
+
     <div class="course-grid">
       <div class="course-card">
-        <h3>Prime Package</h3>
-        <p class="price">₹1,499</p>
-        <p>Essential digital foundation for starters.</p>
-        <button class="btn btn-primary">Enroll Now</button>
-      </div>
-      <div class="course-card">
-        <h3>Premium Package</h3>
-        <p class="price">₹4,999</p>
-        <p>Advanced strategies & direct mentorship.</p>
-        <button class="btn btn-primary">Enroll Now</button>
-      </div>
-      <div class="course-card">
-        <h3>Finance Mastery</h3>
-        <p class="price">₹9,999</p>
-        <p>Master the markets and high-ticket sales.</p>
-        <button class="btn btn-primary">Enroll Now</button>
-      </div>
-    </div>
-  </section>
-
-  <section class="mission">
-    <div class="mission-image">
-      <img src="founder-avatar.png" alt="Kabir Pathan - Founder" />
-    </div>
-    <div class="mission-content">
-      <h2>Our Mission</h2>
-      <p>Hi, I am <strong>Kabir Pathan</strong>, the founder of Skill Futures. We are built to empower individuals with real skills, proven systems, and unlimited earning potential through online business and affiliate marketing.</p>
-      <br>
-      <p>Over the past few years, we've helped thousands of people — from students to professionals — take their first successful steps into the digital world. Our mission is to create a community where people grow together with practical training and tested tools.</p>
-    </div>
-  </section>
-
-  <section class="instructors">
-    <h2>Learn From The Best</h2>
-    <div class="instructor-grid">
-      <div class="instructor-card">
-        <div class="instructor-image">
-           <img src="founder-avatar.png" alt="Kabir Pathan" />
-        </div>
-        <h4>Kabir Pathan</h4>
-        <p>Founder & Lead Mentor</p>
-      </div>
-      <div class="instructor-card">
-        <div class="instructor-image">
-           <img src="technical-avatar.png" alt="Arun Pratap" />
-        </div>
-        <h4>Arun Pratap</h4>
-        <p>Technical Specialist</p>
-      </div>
-      <div class="instructor-card">
-        <div class="instructor-image">
-           <img src="technical-avatar.png" alt="Deepak Saini" />
-        </div>
-        <h4>Deepak Saini</h4>
-        <p>Success Manager</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="testimonials">
-    <h2>Words From Our Students</h2>
-    <div class="testimonial-grid">
-      <div class="testimonial-card">
-        <p>"Skill Futures changed my perspective on digital marketing. The support team is amazing!"</p>
-        <div class="testimonial-author"><strong>Aasmeen Ansari</strong></div>
-      </div>
-      <div class="testimonial-card">
-        <p>"The best investment I've made. The Prime package gave me exactly what I needed to start."</p>
-        <div class="testimonial-author"><strong>Vinay Kumar</strong></div>
-      </div>
-    </div>
-  </section>
-`;
-
-// ─── Login View ──────────────────────────────────────────────────────────────
-
-const LoginContent = `
-  <div class="login-view">
-    <div class="login-card">
-      <div class="logo">
-        <img src="logo.png" alt="Skill Futures Logo" />
-      </div>
-      <h2>Welcome Back</h2>
-      <p>Login to your Skill Futures Account</p>
-      <form class="login-form">
-        <div class="form-group">
-          <label>Email ID</label>
-          <input type="email" placeholder="Enter your email" required />
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" placeholder="••••••••" required />
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">Submit</button>
-      </form>
-      <div class="login-links">
-        <a href="#">Forgot Password?</a>
-        <span>Don't have an account? <a href="#" id="backToHome">Sign Up</a></span>
+        <img src="hero-graphic.png" style="width: 100%; border-radius: 12px; margin-bottom: 1.5rem;"/>
+        <h3>Webinar Training</h3>
+        <p>Join our weekly session on advanced affiliate strategies.</p>
+        <button class="btn btn-primary">Join Now</button>
       </div>
     </div>
   </div>
 `;
 
-// ─── App Logic ───────────────────────────────────────────────────────────────
+const CourseListView = () => `
+  <div class="main-dashboard">
+    <h1 style="margin-bottom: 3rem;">My Enrolled Courses</h1>
+    <div class="course-grid">
+      ${AppState.user.enrolledCourses.map(course => `
+        <div class="course-card">
+          <img src="${course.img}" style="width: 100%; border-radius: 12px; margin-bottom: 1.5rem;"/>
+          <h3>${course.title}</h3>
+          <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin: 1rem 0;">
+            <div style="width: ${course.progress}%; height: 100%; background: var(--accent); border-radius: 4px;"></div>
+          </div>
+          <p>${course.progress}% Completed</p>
+          <button class="btn btn-primary">Continue Learning</button>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+`;
 
-const initApp = () => {
+const ProfileView = () => `
+  <div class="main-dashboard">
+    <h1 style="margin-bottom: 3rem;">My Profile</h1>
+    <div class="course-card" style="text-align: left;">
+      <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2rem;">
+        <img src="founder-avatar.png" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary-blue);"/>
+        <div>
+          <h2>${AppState.user.name}</h2>
+          <p style="color: var(--text-dim);">${AppState.user.email}</p>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div>
+          <label style="color: var(--text-dim); font-size: 0.8rem;">KYC Status</label>
+          <p style="color: #4ade80; font-weight: 700;">APPROVED ✅</p>
+        </div>
+        <div>
+          <label style="color: var(--text-dim); font-size: 0.8rem;">Current Package</label>
+          <p>Premium Package (Gold)</p>
+        </div>
+        <div>
+          <label style="color: var(--text-dim); font-size: 0.8rem;">Sponsor</label>
+          <p>Juned khan</p>
+        </div>
+        <div>
+          <label style="color: var(--text-dim); font-size: 0.8rem;">Join Date</label>
+          <p>March 12, 2026</p>
+        </div>
+      </div>
+    </div>
+  </div>
+`;
+
+// ─── Core Logic ─────────────────────────────────────────────────────────────
+
+const render = () => {
   const app = document.querySelector('#app');
   if (!app) return;
+
+  if (AppState.isLoggedIn && AppState.view !== 'home') {
+    // Render Dashboard Layout
+    app.innerHTML = `
+      <div class="dashboard-layout">
+        ${Sidebar()}
+        <div id="dashboard-content">
+          ${AppState.view === 'dashboard' ? DashboardView() : ''}
+          ${AppState.view === 'courses' ? CourseListView() : ''}
+          ${AppState.view === 'profile' ? ProfileView() : ''}
+        </div>
+      </div>
+    `;
+  } else {
+    // Render Landing Layout
+    app.innerHTML = `
+      ${Header()}
+      <main id="main-content">
+        ${AppState.view === 'home' ? HomeView() : ''}
+        ${AppState.view === 'login' ? LoginView() : ''}
+      </main>
+      ${Footer()}
+    `;
+  }
   
-  app.innerHTML = `
-    ${Header}
-    <main id="main-content"></main>
-    ${Footer}
-  `;
-  renderHome();
-};
-
-const renderHome = () => {
-  const mainContent = document.querySelector('#main-content');
-  if (mainContent) {
-    mainContent.innerHTML = HomeContent;
-    window.scrollTo(0, 0);
-    attachEvents();
-  }
-};
-
-const renderLogin = () => {
-  const mainContent = document.querySelector('#main-content');
-  if (mainContent) {
-    mainContent.innerHTML = LoginContent;
-    window.scrollTo(0, 0);
-    attachEvents();
-  }
+  attachEvents();
+  window.scrollTo(0, 0);
 };
 
 const attachEvents = () => {
-  const loginBtn = document.querySelector('#loginBtn');
-  if (loginBtn) loginBtn.onclick = renderLogin;
-
-  const homeLinks = document.querySelectorAll('.nav-home, .logo, #backToHome');
-  homeLinks.forEach(el => {
-    if (el) el.onclick = renderHome;
+  // Navigation Links
+  document.querySelectorAll('.nav-link').forEach(el => {
+    el.onclick = (e) => {
+      const view = el.getAttribute('data-view');
+      if (view) {
+        AppState.view = view;
+        render();
+      }
+    };
   });
 
-  const loginForm = document.querySelector('.login-form');
+  // Action Buttons
+  const loginBtn = document.querySelector('#loginBtn');
+  if (loginBtn) loginBtn.onclick = () => { AppState.view = 'login'; render(); };
+
+  const dashboardBtn = document.querySelector('#dashboardBtn');
+  if (dashboardBtn) dashboardBtn.onclick = () => { AppState.view = 'dashboard'; render(); };
+
+  const logoutBtn = document.querySelector('#logoutBtn');
+  if (logoutBtn) logoutBtn.onclick = () => {
+    AppState.isLoggedIn = false;
+    AppState.view = 'home';
+    localStorage.removeItem('isLoggedIn');
+    render();
+  };
+
+  // Forms
+  const loginForm = document.querySelector('#loginForm');
   if (loginForm) {
     loginForm.onsubmit = (e) => {
       e.preventDefault();
-      alert('Login functionality will be integrated in Phase 3.');
+      AppState.isLoggedIn = true;
+      AppState.view = 'dashboard';
+      localStorage.setItem('isLoggedIn', 'true');
+      render();
     };
   }
 };
 
-// Initialize
-initApp();
+// Initial Render
+render();
