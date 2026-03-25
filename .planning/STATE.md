@@ -9,7 +9,7 @@ The core UI reconstruction is complete. All identified sections from `futurefiix
 
 ## Active Phase Details (Phase 2)
 - **Status:** [/] In Progress
-- **Last Task:** Refactored for Persistent Layout (Shared Header/Footer).
+- **Last Task:** Fixed Vercel build permissions in `package.json`.
 - **Paused At:** None.
 
 ## Milestone v1.0 Checklist
