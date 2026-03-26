@@ -403,7 +403,7 @@ const HomeView = () => `
 `;
 
 const AuthView = (type) => `
-  <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a3a 0%, #00051a 100%);">
+  <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #e0f2fe 0%, #f1f5f9 100%);">
     <div style="background: rgba(255,255,255,0.05); padding: 3rem; border-radius: 20px; border: 1px solid var(--card-border); width: 100%; max-width: ${type === 'login' ? '450px' : '500px'};">
       <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2rem;">${type === 'login' ? 'Sign In' : 'Create Account'}</h2>
       <form id="${type}Form">
