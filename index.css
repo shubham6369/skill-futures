@@ -266,8 +266,8 @@ body {
 /* ─── Footer ────────────────────────────────────────────────────────────────── */
 
 .footer {
-  background: #ffffff;
-  color: var(--text-main);
+  background: #0f172a;
+  color: white;
   padding: 4rem 2rem 0;
   border-top: 1px solid var(--card-border);
   font-family: 'Poppins', sans-serif;
@@ -332,7 +332,7 @@ body {
 }
 
 .footer-socials a {
-  color: var(--text-main);
+  color: white;
   font-size: 1.1rem;
   transition: transform 0.3s;
 }
@@ -351,14 +351,14 @@ body {
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--card-border);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
   color: var(--text-dim);
-  background: #fff;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .developed-by span {
