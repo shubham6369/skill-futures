@@ -3598,46 +3598,46 @@ This typically indicates that your device does not have a healthy Internet conne
       <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; padding-left: 48px; margin-top: -8px;">"Crafting Careers, Creating Incomes."</div>
     </div>
     <ul class="sidebar-nav">
-      <li class="sidebar-item ${O.view==="dashboard"?"active":""} animate-fade-up stagger-1" data-route="dashboard">
+      <li class="sidebar-item ${O.view==="dashboard"?"active":""}" data-route="dashboard">
         <i class="fas fa-desktop"></i> Affiliate Dashboard
       </li>
-      <li class="sidebar-item ${O.view==="profile"?"active":""} animate-fade-up stagger-2" data-route="profile">
+      <li class="sidebar-item ${O.view==="profile"?"active":""}" data-route="profile">
         <i class="fas fa-user"></i> My Profile
       </li>
-      <li class="sidebar-item ${O.view==="affiliate-link"?"active":""} animate-fade-up stagger-3" data-route="affiliate-link">
+      <li class="sidebar-item ${O.view==="affiliate-link"?"active":""}" data-route="affiliate-link">
         <i class="fas fa-link"></i> Affiliate Link
       </li>
-      <li class="sidebar-item ${O.view==="courses"?"active":""} animate-fade-up stagger-4" data-route="courses">
+      <li class="sidebar-item ${O.view==="courses"?"active":""}" data-route="courses">
         <i class="fas fa-tablet-screen-button"></i> My Courses
       </li>
-      <li class="sidebar-item ${O.view==="upgrade"?"active":""} animate-fade-up stagger-5" data-route="upgrade">
+      <li class="sidebar-item ${O.view==="upgrade"?"active":""}" data-route="upgrade">
         <i class="fas fa-chart-line"></i> Upgrade
       </li>
-      <li class="sidebar-item ${O.view==="leaderboard"?"active":""} animate-fade-up stagger-6" data-route="leaderboard">
+      <li class="sidebar-item ${O.view==="leaderboard"?"active":""}" data-route="leaderboard">
         <i class="fas fa-chart-bar"></i> Leaderboard
       </li>
-      <li class="sidebar-item ${O.view==="team"?"active":""} animate-fade-up stagger-1" data-route="team">
+      <li class="sidebar-item ${O.view==="team"?"active":""}" data-route="team">
         <i class="fas fa-users"></i> My Team
       </li>
-      <li class="sidebar-item ${O.view==="reports"?"active":""} animate-fade-up stagger-2" data-route="reports">
+      <li class="sidebar-item ${O.view==="reports"?"active":""}" data-route="reports">
         <i class="fas fa-file-alt"></i> Reports <i class="fas fa-chevron-right arrow"></i>
       </li>
-      <li class="sidebar-item ${O.view==="training"?"active":""} animate-fade-up stagger-3" data-route="training">
+      <li class="sidebar-item ${O.view==="training"?"active":""}" data-route="training">
         <i class="fas fa-video"></i> Training
       </li>
-      <li class="sidebar-item ${O.view==="webinars"?"active":""} animate-fade-up stagger-4" data-route="webinars">
+      <li class="sidebar-item ${O.view==="webinars"?"active":""}" data-route="webinars">
         <i class="fas fa-video"></i> Webinars
       </li>
-      <li class="sidebar-item ${O.view==="offers"?"active":""} animate-fade-up stagger-5" data-route="offers">
+      <li class="sidebar-item ${O.view==="offers"?"active":""}" data-route="offers">
         <i class="fas fa-bullseye"></i> Offers
       </li>
-      <li class="sidebar-item ${O.view==="earning-target"?"active":""} animate-fade-up stagger-6" data-route="earning-target">
+      <li class="sidebar-item ${O.view==="earning-target"?"active":""}" data-route="earning-target">
         <i class="fas fa-dollar-sign"></i> Earning Target
       </li>
-      <li class="sidebar-item ${O.view==="wallet"?"active":""} animate-fade-up stagger-1" data-route="wallet">
+      <li class="sidebar-item ${O.view==="wallet"?"active":""}" data-route="wallet">
         <i class="fas fa-user-check"></i> Wallet Request
       </li>
-      <li class="sidebar-item ${O.view==="create-account"?"active":""} animate-fade-up stagger-2" data-route="create-account">
+      <li class="sidebar-item ${O.view==="create-account"?"active":""}" data-route="create-account">
         <i class="fas fa-user-plus"></i> Create Account
       </li>
     </ul>
