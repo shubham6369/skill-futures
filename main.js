@@ -403,36 +403,56 @@ const HomeView = () => `
 `;
 
 const AuthView = (type) => `
-  <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #e0f2fe 0%, #f1f5f9 100%);">
-    <div style="background: rgba(255,255,255,0.05); padding: 3rem; border-radius: 20px; border: 1px solid var(--card-border); width: 100%; max-width: ${type === 'login' ? '450px' : '500px'};">
-      <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2rem;">${type === 'login' ? 'Sign In' : 'Create Account'}</h2>
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <h2 class="auth-title">${type === 'login' ? 'Login Account' : 'Create Account'}</h2>
+      <p class="auth-subtitle">
+        ${type === 'login' ? "Hey there! Ready to log in? Just enter your email and password below and you'll be back in action in no time. Let's go!" : 'Join our community of digital entrepreneurs and start building your future today.'}
+      </p>
+      
       <form id="${type}Form">
         ${type === 'signup' ? `
-          <div style="margin-bottom: 1.5rem;">
-            <label style="display: block; margin-bottom: 0.5rem;">Full Name</label>
-            <input type="text" id="signupName" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white;"/>
+          <div class="form-field">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="signupName" class="auth-input" placeholder="Full Name" required>
           </div>
         ` : ''}
-        <div style="margin-bottom: 1.5rem;">
-          <label style="display: block; margin-bottom: 0.5rem;">Email ID</label>
-          <input type="email" id="${type}Email" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white;"/>
+        
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input type="email" id="${type}Email" class="auth-input" placeholder="Email" required>
         </div>
-        <div style="margin-bottom: 1.5rem;">
-          <label style="display: block; margin-bottom: 0.5rem;">Password</label>
-          <input type="password" id="${type}Password" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white;"/>
+        
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <div class="password-container">
+            <input type="password" id="${type}Password" class="auth-input" placeholder="Password" required>
+            <i class="fas fa-eye visibility-toggle" onclick="const p = document.getElementById('${type}Password'); p.type = p.type === 'password' ? 'text' : 'password'; this.classList.toggle('fa-eye'); this.classList.toggle('fa-eye-slash');"></i>
+          </div>
         </div>
+        
+        <div class="auth-options">
+          <label class="remember-me">
+            <input type="checkbox"> Remember me
+          </label>
+          <a href="#" class="forgot-link">Forgot Password?</a>
+        </div>
+        
         ${type === 'signup' ? `
-          <div style="margin-bottom: 2rem;">
-            <label style="display: block; margin-bottom: 0.5rem;">Referral Code (Optional)</label>
-            <input type="text" id="signupReferral" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white;"/>
+          <div class="form-field">
+            <label class="form-label">Referral Code (Optional)</label>
+            <input type="text" id="signupReferral" class="auth-input" placeholder="Referral Code">
           </div>
         ` : ''}
-        <button type="submit" class="btn btn-primary" style="width: 100%;">${type === 'login' ? 'Sign In' : 'Create Account'}</button>
-        <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-dim);">
-          ${type === 'login' ? "Don't have an account? <span id='toSignUp' style='color: var(--accent); cursor: pointer;'>Sign Up</span>" : 
-          "Already have an account? <span id='toSignIn' style='color: var(--accent); cursor: pointer;'>Sign In</span>"}
-        </p>
+        
+        <button type="submit" class="btn-auth">
+          ${type === 'login' ? 'Sign In' : 'Sign Up'} <i class="fas fa-arrow-right"></i>
+        </button>
       </form>
+      
+      <div class="auth-footer">
+        ${type === 'login' ? `Don't have an account? <span id="toSignUp" style="color: #5e5ce6; font-weight: 700; cursor: pointer;">Sign Up</span>` : `Already have an account? <span id="toSignIn" style="color: #5e5ce6; font-weight: 700; cursor: pointer;">Login</span>`}
+      </div>
     </div>
   </div>
 `;
