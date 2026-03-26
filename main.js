@@ -124,11 +124,11 @@ const requestPayout = async (amount, upi) => {
 const Sidebar = () => `
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 5px;">
-        <img src="/logo.png" alt="Logo" style="height: 40px;"/>
-        <div style="font-size: 1.8rem; font-weight: 800; color: #4338ca; letter-spacing: -1px;">SkillFutures</div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+        <img src="/logo.png" alt="Logo" style="height: 38px;"/>
+        <div style="font-size: 1.55rem; font-weight: 800; color: #4338ca; letter-spacing: -0.5px;">SkillFutures</div>
       </div>
-      <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; padding-left: 52px; margin-top: -10px;">"Crafting Careers, Creating Incomes."</div>
+      <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; padding-left: 48px; margin-top: -8px;">"Crafting Careers, Creating Incomes."</div>
     </div>
     <ul class="sidebar-nav">
       <li class="sidebar-item ${AppState.view === 'dashboard' ? 'active' : ''} animate-fade-up stagger-1" data-route="dashboard">

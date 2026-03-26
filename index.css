@@ -66,6 +66,7 @@ body {
 
 .sidebar {
   width: 280px;
+  flex-shrink: 0;
   background: white;
   border-right: 1px solid #f1f5f9;
   height: 100vh;
