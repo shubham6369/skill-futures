@@ -22,7 +22,12 @@ const getQueryParams = () => {
 
 const copyToClipboard = (text) => {
   navigator.clipboard.writeText(text).then(() => {
-    alert("Copied to clipboard!");
+    const toast = document.createElement('div');
+    toast.className = 'animate-fade';
+    toast.style.cssText = 'position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #4ade80; color: white; padding: 12px 24px; border-radius: 50px; font-weight: 700; z-index: 9999; box-shadow: 0 10px 20px rgba(0,0,0,0.1);';
+    toast.innerHTML = '<i class="fas fa-check-circle"></i> Linked Copied Successfully!';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
   });
 };
 
@@ -126,46 +131,46 @@ const Sidebar = () => `
       <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; padding-left: 52px; margin-top: -10px;">"Crafting Careers, Creating Incomes."</div>
     </div>
     <ul class="sidebar-nav">
-      <li class="sidebar-item ${AppState.view === 'dashboard' ? 'active' : ''}" data-route="dashboard">
+      <li class="sidebar-item ${AppState.view === 'dashboard' ? 'active' : ''} animate-fade-up stagger-1" data-route="dashboard">
         <i class="fas fa-desktop"></i> Affiliate Dashboard
       </li>
-      <li class="sidebar-item ${AppState.view === 'profile' ? 'active' : ''}" data-route="profile">
+      <li class="sidebar-item ${AppState.view === 'profile' ? 'active' : ''} animate-fade-up stagger-2" data-route="profile">
         <i class="fas fa-user"></i> My Profile
       </li>
-      <li class="sidebar-item ${AppState.view === 'affiliate-link' ? 'active' : ''}" data-route="affiliate-link">
+      <li class="sidebar-item ${AppState.view === 'affiliate-link' ? 'active' : ''} animate-fade-up stagger-3" data-route="affiliate-link">
         <i class="fas fa-link"></i> Affiliate Link
       </li>
-      <li class="sidebar-item ${AppState.view === 'courses' ? 'active' : ''}" data-route="courses">
+      <li class="sidebar-item ${AppState.view === 'courses' ? 'active' : ''} animate-fade-up stagger-4" data-route="courses">
         <i class="fas fa-tablet-screen-button"></i> My Courses
       </li>
-      <li class="sidebar-item ${AppState.view === 'upgrade' ? 'active' : ''}" data-route="upgrade">
+      <li class="sidebar-item ${AppState.view === 'upgrade' ? 'active' : ''} animate-fade-up stagger-5" data-route="upgrade">
         <i class="fas fa-chart-line"></i> Upgrade
       </li>
-      <li class="sidebar-item ${AppState.view === 'leaderboard' ? 'active' : ''}" data-route="leaderboard">
+      <li class="sidebar-item ${AppState.view === 'leaderboard' ? 'active' : ''} animate-fade-up stagger-6" data-route="leaderboard">
         <i class="fas fa-chart-bar"></i> Leaderboard
       </li>
-      <li class="sidebar-item ${AppState.view === 'team' ? 'active' : ''}" data-route="team">
+      <li class="sidebar-item ${AppState.view === 'team' ? 'active' : ''} animate-fade-up stagger-1" data-route="team">
         <i class="fas fa-users"></i> My Team
       </li>
-      <li class="sidebar-item ${AppState.view === 'reports' ? 'active' : ''}" data-route="reports">
+      <li class="sidebar-item ${AppState.view === 'reports' ? 'active' : ''} animate-fade-up stagger-2" data-route="reports">
         <i class="fas fa-file-alt"></i> Reports <i class="fas fa-chevron-right arrow"></i>
       </li>
-      <li class="sidebar-item ${AppState.view === 'training' ? 'active' : ''}" data-route="training">
+      <li class="sidebar-item ${AppState.view === 'training' ? 'active' : ''} animate-fade-up stagger-3" data-route="training">
         <i class="fas fa-video"></i> Training
       </li>
-      <li class="sidebar-item ${AppState.view === 'webinars' ? 'active' : ''}" data-route="webinars">
+      <li class="sidebar-item ${AppState.view === 'webinars' ? 'active' : ''} animate-fade-up stagger-4" data-route="webinars">
         <i class="fas fa-video"></i> Webinars
       </li>
-      <li class="sidebar-item ${AppState.view === 'offers' ? 'active' : ''}" data-route="offers">
+      <li class="sidebar-item ${AppState.view === 'offers' ? 'active' : ''} animate-fade-up stagger-5" data-route="offers">
         <i class="fas fa-bullseye"></i> Offers
       </li>
-      <li class="sidebar-item ${AppState.view === 'earning-target' ? 'active' : ''}" data-route="earning-target">
+      <li class="sidebar-item ${AppState.view === 'earning-target' ? 'active' : ''} animate-fade-up stagger-6" data-route="earning-target">
         <i class="fas fa-dollar-sign"></i> Earning Target
       </li>
-      <li class="sidebar-item ${AppState.view === 'wallet' ? 'active' : ''}" data-route="wallet">
+      <li class="sidebar-item ${AppState.view === 'wallet' ? 'active' : ''} animate-fade-up stagger-1" data-route="wallet">
         <i class="fas fa-user-check"></i> Wallet Request
       </li>
-      <li class="sidebar-item ${AppState.view === 'create-account' ? 'active' : ''}" data-route="create-account">
+      <li class="sidebar-item ${AppState.view === 'create-account' ? 'active' : ''} animate-fade-up stagger-2" data-route="create-account">
         <i class="fas fa-user-plus"></i> Create Account
       </li>
     </ul>
@@ -193,42 +198,42 @@ const DashboardView = () => {
       </div>
 
       <div class="metrics-grid">
-        <div class="metric-card card-today">
+        <div class="metric-card card-today animate-fade-up stagger-1">
           <div class="metric-info">
             <h3>₹ ${m.todayEarnings || 0} /-</h3>
             <span>Today's Earning</span>
           </div>
           <div class="metric-icon">₹</div>
         </div>
-        <div class="metric-card card-weekly">
+        <div class="metric-card card-weekly animate-fade-up stagger-2">
           <div class="metric-info">
             <h3>₹ ${m.weeklyEarnings || 0} /-</h3>
             <span>Weekly Earning</span>
           </div>
           <div class="metric-icon">₹</div>
         </div>
-        <div class="metric-card card-monthly">
+        <div class="metric-card card-monthly animate-fade-up stagger-3">
           <div class="metric-info">
             <h3>₹ ${m.monthlyEarnings || 0} /-</h3>
             <span>Monthly Earning</span>
           </div>
           <div class="metric-icon">₹</div>
         </div>
-        <div class="metric-card card-alltime">
+        <div class="metric-card card-alltime animate-fade-up stagger-4">
           <div class="metric-info">
             <h3>₹ ${m.allTimeEarnings || 0} /-</h3>
             <span>All Time Earning</span>
           </div>
           <div class="metric-icon">₹</div>
         </div>
-        <div class="metric-card card-passive">
+        <div class="metric-card card-passive animate-fade-up stagger-5">
           <div class="metric-info">
             <h3>₹ ${m.passiveEarnings || 0} /-</h3>
             <span>Total Passive Earning</span>
           </div>
           <div class="metric-icon">₹</div>
         </div>
-        <div class="metric-card card-industry">
+        <div class="metric-card card-industry animate-fade-up stagger-6">
           <div class="metric-info">
             <h3>₹ ${m.industryEarnings || 0} /-</h3>
             <span>Industry Earning</span>
@@ -254,26 +259,26 @@ const DashboardView = () => {
 };
 
 const LeaderboardView = () => `
-  <section class="main-content">
+  <section class="main-content animate-fade-up">
     <h1 style="margin-bottom: 3rem;">Leaderboard</h1>
-    <div class="chart-container">
-      <table style="width: 100%; border-collapse: collapse; color: white;">
+    <div class="chart-container" style="background: white; border: 1px solid #f1f5f9;">
+      <table style="width: 100%; border-collapse: collapse; color: #0f172a;">
         <thead>
-          <tr style="text-align: left; border-bottom: 1px solid var(--card-border);">
-            <th style="padding: 1rem;">Rank</th>
-            <th style="padding: 1rem;">User</th>
-            <th style="padding: 1rem;">Total Earnings</th>
+          <tr style="text-align: left; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
+            <th style="padding: 1.2rem;">Rank</th>
+            <th style="padding: 1.2rem;">User</th>
+            <th style="padding: 1.2rem;">Total Earnings</th>
           </tr>
         </thead>
         <tbody>
           ${AppState.leaderboard.map((user, i) => `
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-              <td style="padding: 1rem;">#${i + 1}</td>
-              <td style="padding: 1rem; display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 35px; height: 35px; background: #2a2a2a; border-radius: 50%;"></div>
-                ${user.name}
+            <tr style="border-bottom: 1px solid #f8fafc; transition: background 0.2s;" class="animate-fade stagger-${(i % 6) + 1}">
+              <td style="padding: 1.2rem; font-weight: 800; color: ${i < 3 ? '#fbbf24' : '#64748b'};">#${i + 1}</td>
+              <td style="padding: 1.2rem; display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 35px; height: 35px; background: #e2e8f0; border-radius: 50%;"></div>
+                <span style="font-weight: 600;">${user.name}</span>
               </td>
-              <td style="padding: 1rem; color: #4ade80; font-weight: 700;">₹ ${user.allTimeEarnings}</td>
+              <td style="padding: 1.2rem; color: #16a34a; font-weight: 700;">₹ ${user.allTimeEarnings}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -283,26 +288,26 @@ const LeaderboardView = () => `
 `;
 
 const TeamView = () => `
-  <section class="main-content">
+  <section class="main-content animate-fade-up">
     <h1 style="margin-bottom: 3rem;">My Team</h1>
-    <div class="chart-container">
+    <div class="chart-container" style="background: white; border: 1px solid #f1f5f9;">
       <table style="width: 100%; border-collapse: collapse;">
         <thead>
-          <tr style="text-align: left; border-bottom: 1px solid var(--card-border);">
-            <th style="padding: 1rem;">Name</th>
-            <th style="padding: 1rem;">Email</th>
-            <th style="padding: 1rem;">Joined At</th>
+          <tr style="text-align: left; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
+            <th style="padding: 1.2rem;">Name</th>
+            <th style="padding: 1.2rem;">Email</th>
+            <th style="padding: 1.2rem;">Joined At</th>
           </tr>
         </thead>
         <tbody>
-          ${AppState.team.map(member => `
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-              <td style="padding: 1rem;">${member.name}</td>
-              <td style="padding: 1rem;">${member.email}</td>
-              <td style="padding: 1rem;">${new Date(member.joinedAt).toLocaleDateString()}</td>
+          ${AppState.team.map((member, i) => `
+            <tr style="border-bottom: 1px solid #f8fafc;" class="animate-fade stagger-${(i % 6) + 1}">
+              <td style="padding: 1.2rem; font-weight: 600;">${member.name}</td>
+              <td style="padding: 1.2rem; color: #64748b;">${member.email}</td>
+              <td style="padding: 1.2rem; color: #64748b;">${new Date(member.joinedAt).toLocaleDateString()}</td>
             </tr>
           `).join('')}
-          ${AppState.team.length === 0 ? '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--text-dim);">No team members yet.</td></tr>' : ''}
+          ${AppState.team.length === 0 ? '<tr><td colspan="3" style="padding: 3rem; text-align: center; color: var(--text-dim);">No team members yet. Start sharing your link!</td></tr>' : ''}
         </tbody>
       </table>
     </div>
@@ -576,8 +581,56 @@ const render = () => {
           </div>
         </section>
       ` : ''}
-      ${['upgrade', 'reports', 'training', 'webinars', 'offers', 'earning-target', 'create-account'].includes(AppState.view) ? `
-        <section class="main-content">
+      ${AppState.view === 'training' ? `
+        <section class="main-content animate-fade">
+          <h1 style="margin-bottom: 2rem;">Student Training Hub</h1>
+          <div class="metrics-grid" style="grid-template-columns: 2fr 1fr;">
+            <div class="chart-container" style="padding: 0; overflow: hidden; background: black;">
+              <iframe width="100%" height="400" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div class="chart-container" style="overflow-y: auto; max-height: 400px;">
+              <h3 style="margin-bottom: 1rem;">Course Modules</h3>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 10px; border-left: 4px solid #4338ca;">1. Introduction to Affiliate</div>
+                <div style="padding: 1rem; background: white; border-radius: 10px; border: 1px solid #f1f5f9;">2. Setting up your Profile</div>
+                <div style="padding: 1rem; background: white; border-radius: 10px; border: 1px solid #f1f5f9;">3. Lead Generation Masterclass</div>
+                <div style="padding: 1rem; background: white; border-radius: 10px; border: 1px solid #f1f5f9;">4. Closing the Sale</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ` : ''}
+      ${AppState.view === 'webinars' ? `
+        <section class="main-content animate-fade">
+          <h1 style="margin-bottom: 2rem;">Live Webinars</h1>
+          <div class="metrics-grid">
+            <div class="chart-container" style="background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); color: white; border: none;">
+              <div style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1rem;">Next Session</div>
+              <h2>Strategic Scaling & Passive Income</h2>
+              <p style="margin: 1rem 0; opacity: 0.9;">Join us this Sunday for an exclusive session with top earners.</p>
+              <div style="display: flex; gap: 20px; font-weight: 700;">
+                <div>24h : 12m : 44s</div>
+              </div>
+              <button class="btn" style="background: white; color: #4338ca; margin-top: 2rem; width: 100%;">Set Reminder</button>
+            </div>
+            <div class="chart-container">
+              <h3>Recent Recordings</h3>
+              <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+                  <span>Sales Psychology 101</span>
+                  <i class="fas fa-play-circle" style="color: #4338ca; font-size: 1.2rem;"></i>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+                  <span>Lead Magnet Optimization</span>
+                  <i class="fas fa-play-circle" style="color: #4338ca; font-size: 1.2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ` : ''}
+      ${['upgrade', 'reports', 'offers', 'earning-target', 'create-account'].includes(AppState.view) ? `
+        <section class="main-content animate-fade-up">
           <h1>${AppState.view.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}</h1>
           <div class="chart-container" style="text-align: center; padding: 5rem;">
             <i class="fas fa-tools" style="font-size: 4rem; color: #6366f1; margin-bottom: 2rem;"></i>
