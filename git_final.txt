@@ -1,0 +1,5 @@
+commit bed1ad1e5b77f7096be0033c7777738c8924deba
+Author: shubham6369 <shubham67257@gmail.com>
+Date:   Thu Mar 26 02:58:40 2026 +0530
+
+    feat: complete SPA transition with dashboard and profile views
