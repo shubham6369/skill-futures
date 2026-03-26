@@ -119,34 +119,61 @@ const requestPayout = async (amount, upi) => {
 const Sidebar = () => `
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <img src="/logo.png" alt="Logo" style="height: 30px; margin-right: 10px; vertical-align: middle;">
-      SkillFutures
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 5px;">
+        <img src="/logo.png" alt="Logo" style="height: 40px;"/>
+        <div style="font-size: 1.8rem; font-weight: 800; color: #4338ca; letter-spacing: -1px;">SkillFutures</div>
+      </div>
+      <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; padding-left: 52px; margin-top: -10px;">"Crafting Careers, Creating Incomes."</div>
     </div>
     <ul class="sidebar-nav">
       <li class="sidebar-item ${AppState.view === 'dashboard' ? 'active' : ''}" data-route="dashboard">
-        <i class="icon">📊</i> Affiliate Dashboard
+        <i class="fas fa-desktop"></i> Affiliate Dashboard
       </li>
       <li class="sidebar-item ${AppState.view === 'profile' ? 'active' : ''}" data-route="profile">
-        <i class="icon">👤</i> My Profile
+        <i class="fas fa-user"></i> My Profile
       </li>
       <li class="sidebar-item ${AppState.view === 'affiliate-link' ? 'active' : ''}" data-route="affiliate-link">
-        <i class="icon">🔗</i> Affiliate Link
+        <i class="fas fa-link"></i> Affiliate Link
       </li>
       <li class="sidebar-item ${AppState.view === 'courses' ? 'active' : ''}" data-route="courses">
-        <i class="icon">📚</i> My Courses
+        <i class="fas fa-tablet-screen-button"></i> My Courses
       </li>
-      <li class="sidebar-item ${AppState.view === 'leaderboard' ? 'active' : ''}" data-route="leaderboard" id="navLeaderboard">
-        <i class="icon">🏆</i> Leaderboard
+      <li class="sidebar-item ${AppState.view === 'upgrade' ? 'active' : ''}" data-route="upgrade">
+        <i class="fas fa-chart-line"></i> Upgrade
       </li>
-      <li class="sidebar-item ${AppState.view === 'team' ? 'active' : ''}" data-route="team" id="navTeam">
-        <i class="icon">👥</i> My Team
+      <li class="sidebar-item ${AppState.view === 'leaderboard' ? 'active' : ''}" data-route="leaderboard">
+        <i class="fas fa-chart-bar"></i> Leaderboard
+      </li>
+      <li class="sidebar-item ${AppState.view === 'team' ? 'active' : ''}" data-route="team">
+        <i class="fas fa-users"></i> My Team
+      </li>
+      <li class="sidebar-item ${AppState.view === 'reports' ? 'active' : ''}" data-route="reports">
+        <i class="fas fa-file-alt"></i> Reports <i class="fas fa-chevron-right arrow"></i>
+      </li>
+      <li class="sidebar-item ${AppState.view === 'training' ? 'active' : ''}" data-route="training">
+        <i class="fas fa-video"></i> Training
+      </li>
+      <li class="sidebar-item ${AppState.view === 'webinars' ? 'active' : ''}" data-route="webinars">
+        <i class="fas fa-video"></i> Webinars
+      </li>
+      <li class="sidebar-item ${AppState.view === 'offers' ? 'active' : ''}" data-route="offers">
+        <i class="fas fa-bullseye"></i> Offers
+      </li>
+      <li class="sidebar-item ${AppState.view === 'earning-target' ? 'active' : ''}" data-route="earning-target">
+        <i class="fas fa-dollar-sign"></i> Earning Target
       </li>
       <li class="sidebar-item ${AppState.view === 'wallet' ? 'active' : ''}" data-route="wallet">
-        <i class="icon">💰</i> Wallet Request
+        <i class="fas fa-user-check"></i> Wallet Request
+      </li>
+      <li class="sidebar-item ${AppState.view === 'create-account' ? 'active' : ''}" data-route="create-account">
+        <i class="fas fa-user-plus"></i> Create Account
       </li>
     </ul>
-    <div class="sidebar-item" id="logoutBtn" style="margin-top: auto; color: #ff4d4d;">
-      <i class="icon">🚪</i> Logout
+    
+    <div style="padding: 1.5rem; border-top: 1px solid #f1f5f9; margin-top: auto;">
+      <button id="logoutBtn" style="width: 100%; padding: 0.8rem; border-radius: 10px; background: #fee2e2; color: #ef4444; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
     </div>
   </aside>
 `;
@@ -546,6 +573,16 @@ const render = () => {
             <p>Name: <strong>${AppState.userData?.name}</strong></p>
             <p>Email: ${AppState.user.email}</p>
             <p style="margin-top: 1rem;">KYC Status: <strong style="color: #4ade80;">APPROVED ✅</strong></p>
+          </div>
+        </section>
+      ` : ''}
+      ${['upgrade', 'reports', 'training', 'webinars', 'offers', 'earning-target', 'create-account'].includes(AppState.view) ? `
+        <section class="main-content">
+          <h1>${AppState.view.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}</h1>
+          <div class="chart-container" style="text-align: center; padding: 5rem;">
+            <i class="fas fa-tools" style="font-size: 4rem; color: #6366f1; margin-bottom: 2rem;"></i>
+            <h2>Section Under Development</h2>
+            <p style="color: #64748b;">We are working hard to bring this feature to your dashboard very soon!</p>
           </div>
         </section>
       ` : ''}
