@@ -1,0 +1,999 @@
+commit 7bdaa75655ef6b3d16f7fda797697900e8fc068b
+Author: shubham6369 <shubham67257@gmail.com>
+Date:   Sun Mar 29 00:25:00 2026 +0530
+
+    Admin panel improvements and UI cleanup
+
+diff --git a/firebase.js b/firebase.js
+index ee802fa..f95a3b6 100644
+--- a/firebase.js
++++ b/firebase.js
+@@ -34,7 +34,8 @@ export {
+   getDoc, 
+   setDoc, 
+   updateDoc, 
+-  increment 
++  increment,
++  deleteDoc
+ } from 'firebase/firestore';
+ 
+ export default app;
+diff --git a/firestore.rules b/firestore.rules
+index 240409a..56d7747 100644
+--- a/firestore.rules
++++ b/firestore.rules
+@@ -1,13 +1,28 @@
+ rules_version = '2';
+ service cloud.firestore {
+   match /databases/{database}/documents {
++    function isAdmin() {
++      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
++    }
++
+     match /users/{userId} {
+       allow read: if request.auth != null;
+-      allow write: if request.auth != null;
++      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
++    }
++    
++    match /courses/{courseId} {
++      allow read: if true;
++      allow write: if isAdmin();
+     }
++    
+     match /payoutRequests/{requestId} {
+       allow create: if request.auth != null;
+-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
++      allow read, list: if request.auth != null && (request.auth.uid == (resource == null ? request.auth.uid : resource.data.userId) || isAdmin());
++      allow update, delete: if isAdmin();
++    }
++    
++    match /userCourses/{id} {
++      allow read, write: if request.auth != null;
+     }
+   }
+ }
+diff --git a/index.css b/index.css
+index 7ad0d15..1d4cd2f 100644
+--- a/index.css
++++ b/index.css
+@@ -452,45 +452,16 @@ body {
+   border-top: 1px solid rgba(255, 255, 255, 0.05);
+   padding: 1.5rem 2rem;
+   display: flex;
+-  justify-content: space-between;
++  justify-content: center;
+   align-items: center;
+   font-size: 0.85rem;
+   color: var(--text-dim);
+   background: rgba(0, 0, 0, 0.2);
+ }
+ 
+-.developed-by span {
+-  color: var(--accent);
+-  font-weight: 600;
+-}
+-
+-.scroll-top {
+-  position: fixed;
+-  bottom: 2rem;
+-  right: 2rem;
+-  width: 45px;
+-  height: 45px;
+-  background: var(--accent);
+-  color: white;
+-  border-radius: 50%;
+-  display: flex;
+-  align-items: center;
+-  justify-content: center;
+-  cursor: pointer;
+-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+-  z-index: 1000;
+-  transition: all 0.3s;
+-}
+-
+-.scroll-top:hover {
+-  transform: translateY(-5px);
+-  background: #7c7af7;
+-}
+ 
+ @media (max-width: 768px) {
+   .footer-bottom {
+-    flex-direction: column;
+-    gap: 1rem;
+     text-align: center;
+   }
+ }
+@@ -1072,3 +1043,174 @@ body {
+     gap: 1.5rem;
+   }
+ }
++
++/* ─── Admin UI System ───────────────────────────────────────────────────────── */
++
++.admin-section-header {
++  display: flex;
++  justify-content: space-between;
++  align-items: center;
++  margin-bottom: 2.5rem;
++  padding-bottom: 1.5rem;
++  border-bottom: 2px solid #f1f5f9;
++}
++
++.admin-section-header h1 {
++  font-size: 2rem;
++  font-weight: 800;
++  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
++  -webkit-background-clip: text;
++  -webkit-text-fill-color: transparent;
++}
++
++.admin-card-metric {
++  background: white;
++  border-radius: 20px;
++  padding: 1.75rem;
++  border: 1px solid #f1f5f9;
++  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
++  transition: all 0.3s ease;
++  display: flex;
++  flex-direction: column;
++  gap: 0.5rem;
++}
++
++.admin-card-metric:hover {
++  transform: translateY(-5px);
++  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
++  border-color: var(--accent);
++}
++
++.admin-card-metric .label {
++  font-size: 0.85rem;
++  text-transform: uppercase;
++  letter-spacing: 1px;
++  color: #64748b;
++  font-weight: 700;
++}
++
++.admin-card-metric .value {
++  font-size: 2.2rem;
++  font-weight: 800;
++  color: #0f172a;
++}
++
++.admin-card-metric .trend {
++  font-size: 0.85rem;
++  display: flex;
++  align-items: center;
++  gap: 0.4rem;
++}
++
++.trend-up { color: #10b981; }
++.trend-down { color: #f43f5e; }
++
++.admin-table-container {
++  background: white;
++  border-radius: 20px;
++  border: 1px solid #f1f5f9;
++  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
++  overflow: hidden;
++  margin-top: 1.5rem;
++}
++
++.admin-table {
++  width: 100%;
++  border-collapse: collapse;
++}
++
++.admin-table thead {
++  background: #f8fafc;
++  border-bottom: 1px solid #f1f5f9;
++}
++
++.admin-table th {
++  padding: 1.25rem 1.5rem;
++  text-align: left;
++  font-size: 0.85rem;
++  text-transform: uppercase;
++  letter-spacing: 0.5px;
++  color: #64748b;
++  font-weight: 800;
++}
++
++.admin-table td {
++  padding: 1.1rem 1.5rem;
++  border-bottom: 1px solid #f8fafc;
++  color: #334155;
++  font-size: 0.95rem;
++}
++
++.admin-table tr:hover td {
++  background: #fcfdfe;
++}
++
++.admin-table tr:last-child td {
++  border-bottom: none;
++}
++
++.status-badge {
++  padding: 0.4rem 1rem;
++  border-radius: 50px;
++  font-size: 0.75rem;
++  font-weight: 800;
++  text-transform: uppercase;
++  letter-spacing: 0.5px;
++  display: inline-flex;
++  align-items: center;
++  gap: 0.4rem;
++}
++
++.badge-pending { background: #fffbeb; color: #b45309; }
++.badge-approved { background: #ecfdf5; color: #047857; }
++.badge-rejected { background: #fef2f2; color: #b91c1c; }
++.badge-admin { background: #eef2ff; color: #4338ca; }
++.badge-user { background: #f1f5f9; color: #475569; }
++
++.admin-action-btn {
++  width: 36px;
++  height: 36px;
++  border-radius: 10px;
++  border: 1px solid #e2e8f0;
++  background: white;
++  color: #64748b;
++  cursor: pointer;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  transition: all 0.2s;
++}
++
++.admin-action-btn:hover {
++  background: #f1f5f9;
++  color: var(--accent);
++  border-color: var(--accent);
++  transform: scale(1.1);
++}
++
++.admin-action-btn.btn-danger:hover {
++  background: #fef2f2;
++  color: #ef4444;
++  border-color: #ef4444;
++}
++
++.empty-state-container {
++  padding: 5rem 2rem;
++  text-align: center;
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  gap: 1.25rem;
++  color: #94a3b8;
++}
++
++.empty-state-icon {
++  font-size: 4rem;
++  margin-bottom: 0.5rem;
++  opacity: 0.2;
++}
++
++.empty-state-container h3 {
++  color: #64748b;
++  font-size: 1.25rem;
++}
+diff --git a/main.js b/main.js
+index 7de54b9..d48d01e 100644
+--- a/main.js
++++ b/main.js
+@@ -1,5 +1,5 @@
+ import { auth, db, 
+-  collection, query, where, orderBy, limit, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, increment 
++  collection, query, where, orderBy, limit, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, increment, deleteDoc 
+ } from './firebase.js';
+ import { 
+   onAuthStateChanged, 
+@@ -37,19 +37,25 @@ const AppState = {
+   view: 'home',
+   user: null,
+   userData: null,
++  isAdmin: false,
+   leaderboard: [],
+   team: [],
+-  courses: [
+-    { id: '1', title: "Sales Mastery", img: "https://futurefiix.com/assets/images/courses/sales.jpg" },
+-    { id: '2', title: "Lead Generation", img: "https://futurefiix.com/assets/images/courses/lead.jpg" },
+-    { id: '3', title: "Affiliate Marketing", img: "https://futurefiix.com/assets/images/courses/affiliate.jpg" },
+-    { id: '4', title: "Video Editing", img: "https://futurefiix.com/assets/images/courses/video.jpg" }
+-  ],
++  courses: [],
+   userCourses: [],
++  allUsers: [],
++  allPayouts: [],
++  allNotices: [],
+   selectedCourseId: null,
+   showWelcomeModal: false,
+   profileTab: 'details',
+-  isSidebarVisible: true
++  isSidebarVisible: true,
++  loading: {
++    leaderboard: false,
++    team: false,
++    courses: false,
++    adminUsers: false,
++    adminPayouts: false
++  }
+ };
+ 
+ // ─── Data Actions ────────────────────────────────────────────────────────────
+@@ -58,6 +64,7 @@ const fetchUserData = async (uid) => {
+   const userDoc = await getDoc(doc(db, 'users', uid));
+   if (userDoc.exists()) {
+     AppState.userData = userDoc.data();
++    AppState.isAdmin = AppState.userData.role === 'admin';
+     render();
+   } else {
+     // Create initial user doc if missing
+@@ -71,32 +78,46 @@ const fetchUserData = async (uid) => {
+       passiveEarnings: 0,
+       industryEarnings: 0,
+       paidEarnings: 0,
++      role: 'user',
+       referralCode: `FF-${uid.substring(0, 5).toUpperCase()}`,
+       joinedAt: new Date().toISOString()
+     };
+     await setDoc(doc(db, 'users', uid), initialData);
+     AppState.userData = initialData;
++    AppState.isAdmin = false;
+     render();
+   }
+ };
+ 
+ const fetchLeaderboard = async () => {
++  if (AppState.loading.leaderboard) return;
++  AppState.loading.leaderboard = true;
+   const q = query(collection(db, 'users'), orderBy('allTimeEarnings', 'desc'), limit(10));
+   const querySnapshot = await getDocs(q);
+   AppState.leaderboard = querySnapshot.docs.map(doc => doc.data());
++  AppState.loading.leaderboard = false;
+   render();
+ };
+ 
+ const fetchTeam = async () => {
++  if (AppState.loading.team) return;
++  AppState.loading.team = true;
+   const q = query(collection(db, 'users'), where('referrerId', '==', AppState.user.uid));
+   const querySnapshot = await getDocs(q);
+   AppState.team = querySnapshot.docs.map(doc => doc.data());
++  AppState.loading.team = false;
+   render();
+ };
+ 
+ const fetchCourses = async () => {
++  if (AppState.loading.courses) return;
++  AppState.loading.courses = true;
+   const querySnapshot = await getDocs(collection(db, 'courses'));
+-  AppState.courses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
++  const dbCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
++  
++  // Merge with dummy data or just use DB data
++  AppState.courses = dbCourses.length > 0 ? dbCourses : AppState.courses;
++  AppState.loading.courses = false;
+   render();
+ };
+ 
+@@ -177,6 +198,101 @@ const requestPayout = async (amount, upi) => {
+   render();
+ };
+ 
++// ─── Admin Actions ───────────────────────────────────────────────────────────
++
++const fetchAdminUsers = async () => {
++  if (!AppState.isAdmin || AppState.loading.adminUsers) return;
++  AppState.loading.adminUsers = true;
++  const q = query(collection(db, 'users'), orderBy('joinedAt', 'desc'));
++  const snap = await getDocs(q);
++  AppState.allUsers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
++  AppState.loading.adminUsers = false;
++  render();
++};
++
++const fetchAdminPayouts = async () => {
++  if (!AppState.isAdmin || AppState.loading.adminPayouts) return;
++  AppState.loading.adminPayouts = true;
++  const q = query(collection(db, 'payoutRequests'), orderBy('createdAt', 'desc'));
++  const snap = await getDocs(q);
++  AppState.allPayouts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
++  AppState.loading.adminPayouts = false;
++  render();
++};
++
++const updatePayoutStatus = async (requestId, userId, amount, status) => {
++  try {
++    const pRef = doc(db, 'payoutRequests', requestId);
++    await updateDoc(pRef, { status });
++    
++    if (status === 'approved') {
++      const uRef = doc(db, 'users', userId);
++      await updateDoc(uRef, {
++        paidEarnings: increment(amount)
++      });
++    }
++    
++    alert(`Payout ${status} successfully!`);
++    await fetchAdminPayouts();
++  } catch (err) {
++    alert("Error updating payout: " + err.message);
++  }
++};
++
++const deleteCourse = async (courseId) => {
++  if (!confirm("Are you sure you want to delete this course?")) return;
++  try {
++    await deleteDoc(doc(db, 'courses', courseId));
++    alert("Course deleted!");
++    await fetchCourses();
++  } catch (err) {
++    alert("Error deleting course: " + err.message);
++  }
++};
++
++const saveCourse = async (courseData) => {
++  try {
++    if (courseData.id) {
++      const { id, ...data } = courseData;
++      await updateDoc(doc(db, 'courses', id), data);
++    } else {
++      await addDoc(collection(db, 'courses'), courseData);
++    }
++    alert("Course saved successfully!");
++    await fetchCourses();
++    AppState.adminModal = null;
++    render();
++  } catch (err) {
++    alert("Error saving course: " + err.message);
++  }
++};
++
++const fetchAdminNotices = async () => {
++  if (!AppState.isAdmin) return;
++  const snap = await getDocs(collection(db, 'notices'));
++  AppState.allNotices = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
++  render();
++};
++
++const saveNotice = async (notice) => {
++  try {
++    await addDoc(collection(db, 'notices'), {
++      ...notice,
++      createdAt: new Date().toISOString()
++    });
++    alert("Notice posted!");
++    fetchAdminNotices();
++  } catch (err) {
++    alert("Error posting notice: " + err.message);
++  }
++};
++
++const deleteNotice = async (id) => {
++  if (!confirm("Delete this notice?")) return;
++  await deleteDoc(doc(db, 'notices', id));
++  fetchAdminNotices();
++};
++
+ const WelcomeModal = () => {
+   if (!AppState.showWelcomeModal) return '';
+   return `
+@@ -207,6 +323,92 @@ const WelcomeModal = () => {
+   `;
+ };
+ 
++const AdminModal = () => {
++  if (!AppState.adminModal) return '';
++  const { type, data } = AppState.adminModal;
++  
++  if (type === 'course') {
++    return `
++      <div class="modal-overlay" id="adminModalOverlay">
++        <div class="modal-container" style="max-width: 550px;">
++          <div class="modal-header">
++            <h2><i class="fas fa-graduation-cap"></i> ${data?.id ? 'Reference Node Editor' : 'Create New Course'}</h2>
++            <button class="modal-close" onclick="AppState.adminModal = null; render();">&times;</button>
++          </div>
++          <div class="modal-body">
++            <form id="adminCourseForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
++              <input type="hidden" id="courseId" value="${data?.id || ''}">
++              
++              <div class="form-group" style="margin-bottom: 1rem;">
++                <label>Course Title</label>
++                <input type="text" id="courseTitle" class="form-input-styled" value="${data?.title || ''}" required placeholder="e.g. High-Ticket Sales Mastery">
++              </div>
++
++              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
++                <div class="form-group" style="margin-bottom: 1rem;">
++                  <label>Category</label>
++                  <input type="text" id="courseCategory" class="form-input-styled" value="${data?.category || 'Premium'}" required>
++                </div>
++                <div class="form-group" style="margin-bottom: 1rem;">
++                  <label>Price (₹)</label>
++                  <input type="number" id="coursePrice" class="form-input-styled" value="${data?.price || 599}" required>
++                </div>
++              </div>
++
++              <div class="form-group" style="margin-bottom: 1rem;">
++                <label>Cover Image URL</label>
++                <input type="url" id="courseImg" class="form-input-styled" value="${data?.img || ''}" required placeholder="https://images.unsplash.com/...">
++              </div>
++
++              <div class="form-group" style="margin-bottom: 1rem;">
++                <label>Total Lessons</label>
++                <input type="number" id="courseLessons" class="form-input-styled" value="${data?.totalLessons || 12}" required>
++              </div>
++
++              <div class="modal-actions" style="margin-top: 1rem;">
++                <button type="submit" class="btn btn-save" style="width: 100%; border-radius: 12px;">
++                  <i class="fas fa-save"></i> COMMITTING CHANGES
++                </button>
++              </div>
++            </form>
++          </div>
++        </div>
++      </div>
++    `;
++  }
++  
++  if (type === 'notice') {
++    return `
++      <div class="modal-overlay" id="adminModalOverlay">
++        <div class="modal-container" style="max-width: 500px;">
++          <div class="modal-header">
++            <h2><i class="fas fa-bullhorn"></i> Broadcast Systems</h2>
++            <button class="modal-close" onclick="AppState.adminModal = null; render();">&times;</button>
++          </div>
++          <div class="modal-body">
++            <form id="adminNoticeForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
++              <div class="form-group" style="margin-bottom: 1rem;">
++                <label>Subject</label>
++                <input type="text" id="noticeTitle" class="form-input-styled" required placeholder="e.g. Server Maintenance or New Promo">
++              </div>
++              <div class="form-group" style="margin-bottom: 1rem;">
++                <label>Message Content</label>
++                <textarea id="noticeMessage" class="form-input-styled" style="height: 120px; resize: none;" required placeholder="Type your broadcast message here..."></textarea>
++              </div>
++              <div class="modal-actions" style="margin-top: 1rem;">
++                <button type="submit" class="btn btn-save" style="width: 100%; background: #f59e0b; border-radius: 12px;">
++                  <i class="fas fa-paper-plane"></i> DEPLOY BROADCAST
++                </button>
++              </div>
++            </form>
++          </div>
++        </div>
++      </div>
++    `;
++  }
++  return '';
++};
++
+ const ProfileView = () => {
+   const ud = AppState.userData || {};
+   const walletBalance = ud.allTimeEarnings - ud.paidEarnings || 0;
+@@ -330,6 +532,271 @@ const ProfileView = () => {
+ 
+ // ─── Components ──────────────────────────────────────────────────────────────
+ 
++// ─── Admin Views ─────────────────────────────────────────────────────────────
++
++const AdminDashboardView = () => {
++  const totalUsers = AppState.allUsers.length;
++  const pendingPayouts = AppState.allPayouts.filter(p => p.status === 'pending').length;
++  const totalCourses = AppState.courses.length;
++  const totalNotices = AppState.allNotices.length;
++  
++  return `
++    <section class="main-content animate-fade">
++      <div class="admin-section-header">
++        <h1>Admin Control Center</h1>
++        <div class="badge-admin status-badge"><i class="fas fa-shield-alt"></i> Systems Online</div>
++      </div>
++
++      <div class="metrics-grid">
++        <div class="admin-card-metric">
++          <span class="label">User Base</span>
++          <div class="value">${totalUsers}</div>
++          <div class="trend trend-up"><i class="fas fa-arrow-up"></i> 12% growth</div>
++        </div>
++        <div class="admin-card-metric">
++          <span class="label">Pending Review</span>
++          <div class="value">${pendingPayouts}</div>
++          <span class="label" style="font-size: 0.7rem; color: #f43f5e;">Action Required</span>
++        </div>
++        <div class="admin-card-metric">
++          <span class="label">Total Courses</span>
++          <div class="value">${totalCourses}</div>
++          <div class="trend"><i class="fas fa-book-open"></i> Catalog Size</div>
++        </div>
++        <div class="admin-card-metric">
++          <span class="label">Active Notices</span>
++          <div class="value">${totalNotices}</div>
++          <div class="trend"><i class="fas fa-bullhorn"></i> Broadcasts</div>
++        </div>
++      </div>
++      
++      <div class="chart-container" style="margin-top: 2rem;">
++        <h3 style="margin-bottom: 1.5rem;">Quick Management</h3>
++        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
++          <button class="btn btn-auth" style="padding: 1rem;" onclick="AppState.view='admin-courses'; render();">
++            <i class="fas fa-edit"></i> Manage Courses
++          </button>
++          <button class="btn btn-auth" style="padding: 1rem; background: #10b981;" onclick="AppState.view='admin-payouts'; render();">
++            <i class="fas fa-check-double"></i> Review Payouts
++          </button>
++          <button class="btn btn-auth" style="padding: 1rem; background: #f59e0b;" onclick="AppState.view='admin-notices'; render();">
++            <i class="fas fa-bullhorn"></i> Post Notice
++          </button>
++          <button class="btn btn-auth" style="padding: 1rem; background: #64748b;" onclick="AppState.view='admin-users'; render();">
++            <i class="fas fa-users-cog"></i> User Audit
++          </button>
++        </div>
++      </div>
++    </section>
++  `;
++};
++
++const AdminUsersView = () => `
++  <section class="main-content animate-fade">
++    <div class="admin-section-header">
++      <h1>User Management</h1>
++      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.6rem 1.2rem; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
++        <i class="fas fa-search" style="color: #94a3b8;"></i>
++        <input type="text" placeholder="Search by name, email, or ref..." style="border: none; outline: none; font-size: 0.95rem; width: 250px;" oninput="window.filterAdminUsers(this.value)"/>
++      </div>
++    </div>
++
++    <div class="admin-table-container">
++      <table class="admin-table">
++        <thead>
++          <tr>
++            <th>User Identity</th>
++            <th>Referral Details</th>
++            <th>Earnings Profile</th>
++            <th>Platform Access</th>
++            <th style="text-align: right;">Join Date</th>
++          </tr>
++        </thead>
++        <tbody>
++          ${AppState.allUsers.length === 0 ? `
++            <tr>
++              <td colspan="5">
++                <div class="empty-state-container">
++                  <i class="fas fa-users-slash empty-state-icon"></i>
++                  <h3>No users found</h3>
++                  <p>Check back later as new users join the platform.</p>
++                </div>
++              </td>
++            </tr>
++          ` : AppState.allUsers.map(user => `
++            <tr>
++              <td>
++                <div style="display: flex; align-items: center; gap: 12px;">
++                  <div style="width: 40px; height: 40px; border-radius: 10px; background: #eef2ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">
++                    ${user.name.substring(0, 2).toUpperCase()}
++                  </div>
++                  <div>
++                    <div style="font-weight: 700; color: #0f172a;">${user.name}</div>
++                    <div style="font-size: 0.8rem; color: #64748b;">${user.email}</div>
++                  </div>
++                </div>
++              </td>
++              <td style="font-family: monospace; font-size: 0.85rem; color: #4338ca;">
++                ${user.referralCode}
++              </td>
++              <td>
++                <div style="font-weight: 800; color: #10b981;">₹ ${(user.allTimeEarnings || 0).toLocaleString()}</div>
++                <div style="font-size: 0.75rem; color: #64748b;">Paid: ₹ ${(user.paidEarnings || 0).toLocaleString()}</div>
++              </td>
++              <td>
++                <span class="status-badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}">
++                  ${user.role === 'admin' ? '<i class="fas fa-user-shield"></i>' : '<i class="fas fa-user"></i>'}
++                  ${user.role || 'user'}
++                </span>
++              </td>
++              <td style="text-align: right; color: #64748b; font-size: 0.85rem;">
++                ${new Date(user.joinedAt).toLocaleDateString()}
++              </td>
++            </tr>
++          `).join('')}
++        </tbody>
++      </table>
++    </div>
++  </section>
++`;
++
++const AdminCoursesView = () => `
++  <section class="main-content animate-fade">
++    <div class="admin-section-header">
++      <h1>Course Catalog</h1>
++      <button class="btn btn-auth" style="width: auto; padding: 0.8rem 1.5rem;" onclick="window.showCourseModal()">
++        <i class="fas fa-plus"></i> Add New Course
++      </button>
++    </div>
++    <div class="course-grid">
++      ${AppState.courses.length === 0 ? `
++        <div style="grid-column: 1/-1;">
++          <div class="empty-state-container">
++            <i class="fas fa-book-open empty-state-icon"></i>
++            <h3>The catalog is empty</h3>
++            <button class="btn btn-primary" onclick="window.showCourseModal()">Add your first course</button>
++          </div>
++        </div>
++      ` : AppState.courses.map(course => `
++        <div class="course-card-v2">
++          <img src="${course.img || 'https://via.placeholder.com/300x200?text=SkillFutures'}" class="course-img-v2" alt="${course.title}"/>
++          <div style="padding: 0.5rem 0.75rem 0.25rem;">
++            <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem;">${course.category || 'Premium'}</div>
++            <h3 style="margin-bottom: 1.25rem; font-size: 1.1rem; text-align: left;">${course.title}</h3>
++            <div style="display: flex; gap: 8px;">
++              <button class="admin-action-btn" title="Edit Course" onclick="window.showCourseModal('${course.id}')"><i class="fas fa-pen"></i></button>
++              <button class="admin-action-btn btn-danger" title="Delete Course" onclick="window.deleteCourse('${course.id}')"><i class="fas fa-trash"></i></button>
++              <div style="margin-left: auto; text-align: right;">
++                <div style="font-weight: 800; color: #0f172a;">₹ ${course.price || 599}</div>
++                <div style="font-size: 0.7rem; color: #64748b;">${course.totalLessons || 12} Lessons</div>
++              </div>
++            </div>
++          </div>
++        </div>
++      `).join('')}
++    </div>
++  </section>
++`;
++
++const AdminPayoutsView = () => `
++  <section class="main-content animate-fade">
++    <div class="admin-section-header">
++      <h1>Financial Queue</h1>
++      <div class="badge-pending status-badge"><i class="fas fa-clock"></i> Action Items</div>
++    </div>
++    
++    <div class="admin-table-container">
++      <table class="admin-table">
++        <thead>
++          <tr>
++            <th>User</th>
++            <th>Payout Amount</th>
++            <th>UPI Address</th>
++            <th>Current Status</th>
++            <th style="text-align: right;">Operations</th>
++          </tr>
++        </thead>
++        <tbody>
++          ${AppState.allPayouts.length === 0 ? `
++            <tr>
++              <td colspan="5">
++                <div class="empty-state-container">
++                  <i class="fas fa-wallet empty-state-icon"></i>
++                  <h3>No payout requests</h3>
++                  <p>All clear! There are no pending requests at the moment.</p>
++                </div>
++              </td>
++            </tr>
++          ` : AppState.allPayouts.map(p => `
++            <tr>
++              <td>
++                <div style="font-weight: 700; color: #0f172a;">${p.userName}</div>
++                <div style="font-size: 0.75rem; color: #64748b;">${new Date(p.createdAt).toLocaleDateString()}</div>
++              </td>
++              <td style="color: #10b981; font-weight: 800; font-size: 1.1rem;">₹ ${p.amount.toLocaleString()}</td>
++              <td style="font-family: monospace; font-size: 0.9rem; color: #475569;">${p.upi}</td>
++              <td>
++                <span class="status-badge ${p.status === 'pending' ? 'badge-pending' : (p.status === 'approved' ? 'badge-approved' : 'badge-rejected')}">
++                  <i class="fas ${p.status === 'pending' ? 'fa-hourglass-start' : (p.status === 'approved' ? 'fa-check-circle' : 'fa-times-circle')}"></i>
++                  ${p.status}
++                </span>
++              </td>
++              <td style="text-align: right;">
++                ${p.status === 'pending' ? `
++                  <div style="display: flex; gap: 8px; justify-content: flex-end;">
++                    <button class="btn btn-auth" style="padding: 0.5rem 1rem; font-size: 0.75rem; background: #10b981;" onclick="window.updatePayoutStatus('${p.id}', '${p.userId}', ${p.amount}, 'approved')">
++                      Approve
++                    </button>
++                    <button class="btn btn-auth" style="padding: 0.5rem 1rem; font-size: 0.75rem; background: #ef4444;" onclick="window.updatePayoutStatus('${p.id}', '${p.userId}', ${p.amount}, 'rejected')">
++                      Reject
++                    </button>
++                  </div>
++                ` : '<span style="color: #94a3b8; font-size: 0.8rem; font-weight: 700;">PROCESSED</span>'}
++              </td>
++            </tr>
++          `).join('')}
++        </tbody>
++      </table>
++    </div>
++  </section>
++`;
++
++const AdminNoticesView = () => `
++  <section class="main-content animate-fade">
++    <div class="admin-section-header">
++      <h1>Platform Notices</h1>
++      <button class="btn btn-auth" style="width: auto; padding: 0.8rem 1.5rem; background: #f59e0b;" onclick="window.showNoticeModal()">
++        <i class="fas fa-bullhorn"></i> New Broadcast
++      </button>
++    </div>
++    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem;">
++        ${AppState.allNotices.length === 0 ? `
++          <div style="grid-column: 1/-1;">
++            <div class="empty-state-container">
++              <i class="fas fa-scroll empty-state-icon"></i>
++              <h3>No active notices</h3>
++              <p>Keep your users informed about updates or maintenance.</p>
++            </div>
++          </div>
++        ` : AppState.allNotices.map(n => `
++          <div style="padding: 1.75rem; background: white; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; position: relative;">
++            <div class="badge-admin status-badge" style="position: absolute; top: 1rem; right: 1rem; font-size: 0.6rem;">Broadcast</div>
++            <div>
++              <h3 style="margin-bottom: 0.75rem; color: #1e293b; font-weight: 800; font-size: 1.2rem;">${n.title}</h3>
++              <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6;">${n.message}</p>
++            </div>
++            <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
++              <span style="font-size: 0.75rem; color: #94a3b8;"><i class="fas fa-clock"></i> ${new Date(n.createdAt).toLocaleDateString()}</span>
++              <button class="admin-action-btn btn-danger" onclick="window.deleteNotice('${n.id}')">
++                <i class="fas fa-trash-alt"></i>
++              </button>
++            </div>
++          </div>
++        `).join('')}
++    </div>
++  </section>
++`;
++
+ const Sidebar = () => `
+   <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''}">
+     <div class="sidebar-logo">
+@@ -387,6 +854,25 @@ const Sidebar = () => `
+       <li class="sidebar-item ${AppState.view === 'create-account' ? 'active' : ''}" data-route="create-account">
+         <i class="fas fa-user-plus"></i> Create Account
+       </li>
++      
++      ${AppState.isAdmin ? `
++        <li style="padding: 1rem 1.5rem 0.5rem; font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Admin Panel</li>
++        <li class="sidebar-item ${AppState.view === 'admin-dashboard' ? 'active' : ''}" data-route="admin-dashboard">
++          <i class="fas fa-shield-halved"></i> Admin Home
++        </li>
++        <li class="sidebar-item ${AppState.view === 'admin-users' ? 'active' : ''}" data-route="admin-users">
++          <i class="fas fa-users-gear"></i> Manage Users
++        </li>
++        <li class="sidebar-item ${AppState.view === 'admin-courses' ? 'active' : ''}" data-route="admin-courses">
++          <i class="fas fa-layer-group"></i> Manage Courses
++        </li>
++        <li class="sidebar-item ${AppState.view === 'admin-payouts' ? 'active' : ''}" data-route="admin-payouts">
++          <i class="fas fa-hand-holding-dollar"></i> Payout Requests
++        </li>
++        <li class="sidebar-item ${AppState.view === 'admin-notices' ? 'active' : ''}" data-route="admin-notices">
++          <i class="fas fa-bullhorn"></i> Manage Notices
++        </li>
++      ` : ''}
+     </ul>
+     
+     <div style="padding: 1.5rem; border-top: 1px solid #f1f5f9; margin-top: auto;">
+@@ -778,11 +1264,6 @@ const Footer = () => `
+     
+     <div class="footer-bottom">
+       <div>Copyright © 2026 SkillFutures. All rights reserved.</div>
+-      <div class="developed-by">Developed by <span>Bizfunnel</span></div>
+-    </div>
+-    
+-    <div class="scroll-top" id="scrollTopBtn">
+-      <i class="fas fa-chevron-up"></i>
+     </div>
+   </footer>
+ `;
+@@ -794,6 +1275,7 @@ const render = () => {
+   if (AppState.user) {
+     app.innerHTML = `
+       ${WelcomeModal()}
++      ${AdminModal()}
+       <div class="dashboard-container ${!AppState.isSidebarVisible ? 'sidebar-hidden' : ''}">
+         ${Sidebar()}
+         <div id="main-view" style="flex-grow: 1; overflow-y: auto;">
+@@ -804,6 +1286,11 @@ const render = () => {
+           ${AppState.view === 'team' ? TeamView() : ''}
+           ${AppState.view === 'wallet' ? WalletRequestView() : ''}
+           ${AppState.view === 'profile' ? ProfileView() : ''}
++          ${AppState.view === 'admin-dashboard' ? AdminDashboardView() : ''}
++          ${AppState.view === 'admin-users' ? AdminUsersView() : ''}
++          ${AppState.view === 'admin-courses' ? AdminCoursesView() : ''}
++          ${AppState.view === 'admin-payouts' ? AdminPayoutsView() : ''}
++          ${AppState.view === 'admin-notices' ? AdminNoticesView() : ''}
+           ${AppState.view === 'training' ? (() => {
+             const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || AppState.courses[0] || {};
+             const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
+@@ -891,12 +1378,18 @@ const render = () => {
+       </div>
+     `;
+     
+-    if (AppState.view === 'leaderboard' && AppState.leaderboard.length === 0) fetchLeaderboard();
+-    if (AppState.view === 'team' && AppState.team.length === 0) fetchTeam();
+-    if (AppState.view === 'courses' && AppState.courses.length === 0) {
++    if (AppState.view === 'leaderboard' && AppState.leaderboard.length === 0 && !AppState.loading.leaderboard) fetchLeaderboard();
++    if (AppState.view === 'team' && AppState.team.length === 0 && !AppState.loading.team) fetchTeam();
++    if (AppState.view === 'courses' && AppState.courses.length === 0 && !AppState.loading.courses) {
+       fetchCourses();
+       fetchUserCourses();
+     }
++    if (AppState.isAdmin) {
++      if (['admin-dashboard', 'admin-users'].includes(AppState.view) && AppState.allUsers.length === 0) fetchAdminUsers();
++      if (['admin-dashboard', 'admin-payouts'].includes(AppState.view) && AppState.allPayouts.length === 0) fetchAdminPayouts();
++      if (['admin-dashboard', 'admin-notices'].includes(AppState.view) && AppState.allNotices.length === 0) fetchAdminNotices();
++      if (AppState.courses.length === 0) fetchCourses();
++    }
+   } else {
+     app.innerHTML = `<header style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border);">
+       <div style="display: flex; align-items: center; gap: 10px;">
+@@ -1073,16 +1566,60 @@ const attachEvents = () => {
+     };
+   }
+ 
+-  // Scroll to Top Logic
+-  const scrollTopBtn = document.querySelector('#scrollTopBtn');
+-  if (scrollTopBtn) {
+-    scrollTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+-    window.onscroll = () => {
+-      if (window.scrollY > 300) scrollTopBtn.style.display = 'flex';
+-      else scrollTopBtn.style.display = 'none';
+-    };
+-    scrollTopBtn.style.display = 'none'; // Initial state
+-  }
++
++  // Admin Window Helpers
++  window.showCourseModal = (courseId) => {
++    const data = courseId ? AppState.courses.find(c => c.id === courseId) : null;
++    AppState.adminModal = { type: 'course', data };
++    render();
++    
++    const form = document.querySelector('#adminCourseForm');
++    if (form) {
++      form.onsubmit = (e) => {
++        e.preventDefault();
++        saveCourse({
++          id: document.querySelector('#courseId').value,
++          title: document.querySelector('#courseTitle').value,
++          img: document.querySelector('#courseImg').value,
++          category: document.querySelector('#courseCategory').value,
++          totalLessons: Number(document.querySelector('#courseLessons').value)
++        });
++      };
++    }
++  };
++
++  window.filterAdminUsers = (query) => {
++    const q = query.toLowerCase();
++    const rows = document.querySelectorAll('admin-users tbody tr'); // This might need a better selector
++    // Actually, it's easier to just re-render with a filtered list if I wanted to be clean, 
++    // but for simple search, I can just hide/show rows.
++    document.querySelectorAll('tbody tr').forEach(row => {
++      const text = row.innerText.toLowerCase();
++      row.style.display = text.includes(q) ? '' : 'none';
++    });
++  };
++
++  window.updatePayoutStatus = updatePayoutStatus;
++  window.deleteCourse = deleteCourse;
++  
++  window.showNoticeModal = () => {
++    AppState.adminModal = { type: 'notice', data: null };
++    render();
++    const form = document.querySelector('#adminNoticeForm');
++    if (form) {
++      form.onsubmit = (e) => {
++        e.preventDefault();
++        saveNotice({
++          title: document.querySelector('#noticeTitle').value,
++          message: document.querySelector('#noticeMessage').value
++        });
++        AppState.adminModal = null;
++        render();
++      };
++    }
++  };
++  
++  window.deleteNotice = deleteNotice;
+ };
+ 
+ onAuthStateChanged(auth, (user) => {
