@@ -39,10 +39,17 @@ const AppState = {
   userData: null,
   leaderboard: [],
   team: [],
-  courses: [],
+  courses: [
+    { id: '1', title: "Sales Mastery", img: "https://futurefiix.com/assets/images/courses/sales.jpg" },
+    { id: '2', title: "Lead Generation", img: "https://futurefiix.com/assets/images/courses/lead.jpg" },
+    { id: '3', title: "Affiliate Marketing", img: "https://futurefiix.com/assets/images/courses/affiliate.jpg" },
+    { id: '4', title: "Video Editing", img: "https://futurefiix.com/assets/images/courses/video.jpg" }
+  ],
   userCourses: [],
   selectedCourseId: null,
-  showWelcomeModal: false
+  showWelcomeModal: false,
+  profileTab: 'details',
+  isSidebarVisible: true
 };
 
 // ─── Data Actions ────────────────────────────────────────────────────────────
@@ -200,16 +207,142 @@ const WelcomeModal = () => {
   `;
 };
 
+const ProfileView = () => {
+  const ud = AppState.userData || {};
+  const walletBalance = ud.allTimeEarnings - ud.paidEarnings || 0;
+  
+  return `
+    <section class="main-content animate-fade">
+      <h1 style="margin-bottom: 2rem;">My Profile</h1>
+      
+      <div class="profile-section-container">
+        <!-- Left Card -->
+        <div class="profile-card card-left">
+          <div class="profile-overview-header">
+            <img src="${ud.profilePic || 'https://via.placeholder.com/150'}" class="profile-image-large" alt="Profile">
+            <h3>${ud.name || 'Learner'}</h3>
+            <p>${AppState.user.email}</p>
+          </div>
+          
+          <div class="profile-details-list">
+            <div class="detail-row">
+              <span class="detail-label"><i class="fas fa-id-badge"></i> Ref Code</span>
+              <span class="detail-value">${ud.referralCode || 'N/A'} <i class="fas fa-copy copy-btn" data-text="${ud.referralCode}"></i></span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label"><i class="fas fa-box"></i> Package</span>
+              <span class="detail-value">${ud.package || 'Premium Package'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label"><i class="fas fa-check-circle"></i> KYC Status</span>
+              <span class="detail-value" style="color: #14b8a6;">${ud.kycStatus || 'approved'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label"><i class="fas fa-user-friends"></i> Sponsor</span>
+              <span class="detail-value">${ud.sponsor || 'Juned khan (N)'}</span>
+            </div>
+          </div>
+          
+          <div class="wallet-mini-grid">
+            <div class="wallet-mini-card">
+              <h4>${walletBalance}</h4>
+              <span>Wallet Balance</span>
+            </div>
+            <div class="wallet-mini-card">
+              <h4>${ud.pendingWithdrawal || 0}</h4>
+              <span>Pending Withdrawal</span>
+            </div>
+          </div>
+          
+          <div class="profile-actions">
+            <button class="btn btn-profile-action btn-withdraw" onclick="AppState.view='wallet'; render();">Withdraw Amount</button>
+            <button class="btn btn-profile-action btn-history">Payout History</button>
+          </div>
+        </div>
+
+        <!-- Right Card (Editor) -->
+        <div class="profile-card card-right">
+          <div class="editor-tabs">
+            <button class="tab-btn ${AppState.profileTab === 'details' ? 'active' : ''}" data-tab="details">Profile Details</button>
+            <button class="tab-btn ${AppState.profileTab === 'kyc' ? 'active' : ''}" data-tab="kyc">Kyc Details</button>
+            <button class="tab-btn ${AppState.profileTab === 'password' ? 'active' : ''}" data-tab="password">Change Password</button>
+          </div>
+          
+          <div class="editor-content">
+            ${AppState.profileTab === 'details' ? `
+              <form id="profileDetailsForm">
+                <div class="form-group">
+                  <label>Profile Picture</label>
+                  <div class="file-input-wrapper">
+                    <span class="custom-file-btn">Choose File</span>
+                    <span style="color: #64748b; font-size: 0.9rem;">No file chosen</span>
+                  </div>
+                  <p class="upload-hint">Upload profile in size (1:1) for proper fit.</p>
+                </div>
+                
+                <div class="form-group">
+                  <label>Name</label>
+                  <input type="text" class="form-input-styled" id="editName" value="${ud.name || ''}" placeholder="Enter your name">
+                </div>
+                
+                <div class="form-group">
+                  <label>Phone</label>
+                  <input type="text" class="form-input-styled" id="editPhone" value="${ud.phone || ''}" placeholder="Enter phone number">
+                </div>
+                
+                <div class="form-group">
+                  <label>Email ID</label>
+                  <input type="email" class="form-input-styled form-input-readonly" value="${AppState.user.email}" readonly>
+                </div>
+                
+                <button type="submit" class="btn btn-save">SAVE CHANGES</button>
+              </form>
+            ` : ''}
+            
+            ${AppState.profileTab === 'kyc' ? `
+              <div style="text-align: center; padding: 2rem;">
+                <i class="fas fa-university" style="font-size: 3rem; color: #4f46e5; margin-bottom: 1rem;"></i>
+                <h3>KYC and Bank Details</h3>
+                <p style="color: #64748b;">Submit your banking and ID details for payouts.</p>
+                <button class="btn btn-save" style="margin-top: 1.5rem;">UPDATE KYC</button>
+              </div>
+            ` : ''}
+            
+            ${AppState.profileTab === 'password' ? `
+              <form id="changePasswordForm">
+                <div class="form-group">
+                  <label>Current Password</label>
+                  <input type="password" class="form-input-styled" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                  <label>New Password</label>
+                  <input type="password" class="form-input-styled" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-save">UPDATE PASSWORD</button>
+              </form>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+};
+
 // ─── Components ──────────────────────────────────────────────────────────────
 
 const Sidebar = () => `
-  <aside class="sidebar">
+  <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''}">
     <div class="sidebar-logo">
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-        <img src="/logo.png" alt="Logo" style="height: 38px;"/>
-        <div style="font-size: 1.55rem; font-weight: 800; color: #4338ca; letter-spacing: -0.5px;">SkillFutures</div>
+      <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="/logo.png" alt="Logo" style="height: 32px; flex-shrink: 0;"/>
+          <div style="font-size: 1.3rem; font-weight: 800; color: #4338ca; letter-spacing: -0.5px; white-space: nowrap;">SkillFutures</div>
+        </div>
+        <div style="font-size: 0.6rem; color: #64748b; font-weight: 600; padding-left: 40px; margin-top: -4px;">"Crafting Careers, Creating Incomes."</div>
       </div>
-      <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; padding-left: 48px; margin-top: -8px;">"Crafting Careers, Creating Incomes."</div>
+      <button id="sidebarToggle" class="sidebar-toggle-btn">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
     <ul class="sidebar-nav">
       <li class="sidebar-item ${AppState.view === 'dashboard' ? 'active' : ''}" data-route="dashboard">
@@ -490,24 +623,29 @@ const AffiliateLinkView = () => {
 
 const CourseListView = () => `
   <section class="main-content">
-    <h1 style="margin-bottom: 3rem;">Courses</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h1>Courses</h1>
+      <span style="background: rgba(67, 56, 202, 0.1); color: #4338ca; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;">
+        ${AppState.courses.length} Available
+      </span>
+    </div>
     <div class="course-grid">
-      ${AppState.courses.map(course => {
-        const isEnrolled = AppState.userCourses.some(uc => uc.courseId === course.id);
-        return `
-          <div class="course-card">
-            <img src="${course.img}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;"/>
-            <div style="padding: 1.5rem;">
-              <h3 style="margin-bottom: 0.5rem;">${course.title}</h3>
-              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;">${course.category || 'Professional'} Package</p>
-              <button class="btn-start" onclick="event.stopPropagation(); window.enrollInCourse('${course.id}')">
-                ${isEnrolled ? 'CONTINUE LEARNING' : 'START NOW'}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('')}
-      ${AppState.courses.length === 0 ? '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #64748b;">No courses found.</p>' : ''}
+      ${AppState.courses.map(course => `
+        <div class="course-card-v2">
+          <img src="${course.img || '/logo.png'}" class="course-img-v2" alt="${course.title}" onerror="this.src='/logo.png'"/>
+          <h3>${course.title || 'Untitled Course'}</h3>
+          <button class="btn-start-course" onclick="event.stopPropagation(); window.enrollInCourse('${course.id}')">
+            START NOW
+          </button>
+        </div>
+      `).join('')}
+      ${AppState.courses.length === 0 ? `
+        <div style="grid-column: 1/-1; text-align: center; padding: 4rem 2rem; background: white; border-radius: 20px; border: 2px dashed #e2e8f0;">
+          <i class="fas fa-book-open" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1.5rem;"></i>
+          <h2 style="color: #64748b; margin-bottom: 0.5rem;">No Courses Found</h2>
+          <p style="color: #94a3b8;">It seems like the course library is empty. Please check back later.</p>
+        </div>
+      ` : ''}
     </div>
   </section>
 `;
@@ -656,7 +794,7 @@ const render = () => {
   if (AppState.user) {
     app.innerHTML = `
       ${WelcomeModal()}
-      <div class="dashboard-container">
+      <div class="dashboard-container ${!AppState.isSidebarVisible ? 'sidebar-hidden' : ''}">
         ${Sidebar()}
         <div id="main-view" style="flex-grow: 1; overflow-y: auto;">
           ${AppState.view === 'dashboard' ? DashboardView() : ''}
@@ -665,16 +803,7 @@ const render = () => {
           ${AppState.view === 'leaderboard' ? LeaderboardView() : ''}
           ${AppState.view === 'team' ? TeamView() : ''}
           ${AppState.view === 'wallet' ? WalletRequestView() : ''}
-          ${AppState.view === 'profile' ? `
-            <section class="main-content">
-              <h1>My Profile</h1>
-              <div class="chart-container">
-                <p>Name: <strong>${AppState.userData?.name}</strong></p>
-                <p>Email: ${AppState.user.email}</p>
-                <p style="margin-top: 1rem;">KYC Status: <strong style="color: #4ade80;">APPROVED ✅</strong></p>
-              </div>
-            </section>
-          ` : ''}
+          ${AppState.view === 'profile' ? ProfileView() : ''}
           ${AppState.view === 'training' ? (() => {
             const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || AppState.courses[0] || {};
             const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
@@ -798,6 +927,14 @@ const attachEvents = () => {
   const logoutBtn = document.querySelector('#logoutBtn');
   if (logoutBtn) logoutBtn.onclick = () => signOut(auth);
 
+  const sidebarToggle = document.querySelector('#sidebarToggle');
+  if (sidebarToggle) {
+    sidebarToggle.onclick = () => {
+      AppState.isSidebarVisible = !AppState.isSidebarVisible;
+      render();
+    };
+  }
+
   const loginForm = document.querySelector('#loginForm');
   if (loginForm) {
     loginForm.onsubmit = async (e) => {
@@ -883,6 +1020,37 @@ const attachEvents = () => {
   if (toSignUp) toSignUp.onclick = () => { AppState.view = 'signup'; render(); };
   const toSignIn = document.querySelector('#toSignIn');
   if (toSignIn) toSignIn.onclick = () => { AppState.view = 'login'; render(); };
+
+  // Profile Tab Switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = () => {
+      AppState.profileTab = btn.dataset.tab;
+      render();
+    };
+  });
+
+  // Save Profile Logic
+  const profileForm = document.querySelector('#profileDetailsForm');
+  if (profileForm) {
+    profileForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const newName = document.querySelector('#editName').value;
+      const newPhone = document.querySelector('#editPhone').value;
+      
+      try {
+        await updateDoc(doc(db, 'users', AppState.user.uid), {
+          name: newName,
+          phone: newPhone
+        });
+        AppState.userData.name = newName;
+        AppState.userData.phone = newPhone;
+        alert('Profile updated successfully! ✅');
+        render();
+      } catch (err) {
+        alert('Error updating profile: ' + err.message);
+      }
+    };
+  }
 
   // Welcome Modal Logic
   const welcomeOverlay = document.querySelector('#welcomeModalOverlay');
