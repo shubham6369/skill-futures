@@ -34,7 +34,8 @@ export {
   getDoc, 
   setDoc, 
   updateDoc, 
-  increment 
+  increment,
+  deleteDoc
 } from 'firebase/firestore';
 
 export default app;
