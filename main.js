@@ -39,24 +39,10 @@ const AppState = {
   userData: null,
   leaderboard: [],
   team: [],
-  courses: [
-    { title: "Sales Mastery", img: "https://futurefiix.com/assets/images/courses/sales.jpg" },
-    { title: "Lead Generation", img: "https://futurefiix.com/assets/images/courses/lead.jpg" },
-    { title: "Affiliate Marketing", img: "https://futurefiix.com/assets/images/courses/affiliate.jpg" },
-    { title: "Video Editing", img: "https://futurefiix.com/assets/images/courses/video.jpg" },
-    { title: "Instagram Mastery", img: "https://futurefiix.com/assets/images/courses/insta.jpg" },
-    { title: "Canva Mastery", img: "https://futurefiix.com/assets/images/courses/canva.jpg" },
-    { title: "Google AdSense", img: "https://futurefiix.com/assets/images/courses/google.jpg" },
-    { title: "YouTube Mastery", img: "https://futurefiix.com/assets/images/courses/youtube.jpg" },
-    { title: "Facebook Ads", img: "https://futurefiix.com/assets/images/courses/fb.jpg" },
-    { title: "Instagram Theme Page", img: "https://futurefiix.com/assets/images/courses/theme.jpg" },
-    { title: "WordPress Development", img: "https://futurefiix.com/assets/images/courses/wp.jpg" },
-    { title: "Communication Skills", img: "https://futurefiix.com/assets/images/courses/comm.jpg" },
-    { title: "Digital Marketing", img: "https://futurefiix.com/assets/images/courses/digital.jpg" },
-    { title: "Drop Shipping", img: "https://futurefiix.com/assets/images/courses/drop.jpg" },
-    { title: "Chat GPT Mastery", img: "https://futurefiix.com/assets/images/courses/gpt.jpg" },
-    { title: "Stock Market", img: "https://futurefiix.com/assets/images/courses/stock.jpg" }
-  ]
+  courses: [],
+  userCourses: [],
+  selectedCourseId: null,
+  showWelcomeModal: false
 };
 
 // ─── Data Actions ────────────────────────────────────────────────────────────
@@ -101,6 +87,71 @@ const fetchTeam = async () => {
   render();
 };
 
+const fetchCourses = async () => {
+  const querySnapshot = await getDocs(collection(db, 'courses'));
+  AppState.courses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  render();
+};
+
+const fetchUserCourses = async () => {
+  const q = query(collection(db, 'userCourses'), where('userId', '==', AppState.user.uid));
+  const querySnapshot = await getDocs(q);
+  AppState.userCourses = querySnapshot.docs.map(doc => doc.data());
+  render();
+};
+
+const enrollInCourse = async (courseId) => {
+  const existing = AppState.userCourses.find(c => c.courseId === courseId);
+  if (existing) {
+    AppState.selectedCourseId = courseId;
+    AppState.view = 'training';
+    render();
+    return;
+  }
+
+  await addDoc(collection(db, 'userCourses'), {
+    userId: AppState.user.uid,
+    courseId: courseId,
+    enrolledAt: new Date().toISOString(),
+    progress: 0,
+    status: 'active',
+    completedLessons: []
+  });
+  
+  await fetchUserCourses();
+  AppState.selectedCourseId = courseId;
+  AppState.view = 'training';
+  render();
+};
+
+const updateProgress = async (courseId, lessonId) => {
+  const enrollment = AppState.userCourses.find(uc => uc.courseId === courseId);
+  if (!enrollment) return;
+
+  const completed = enrollment.completedLessons || [];
+  if (completed.includes(lessonId)) return;
+
+  const newCompleted = [...completed, lessonId];
+  const course = AppState.courses.find(c => c.id === courseId);
+  const total = course?.totalLessons || 1;
+  const progress = Math.round((newCompleted.length / total) * 100);
+
+  // We need the doc ID for the userCourses entry. Let's update fetchUserCourses to include doc ID.
+  const q = query(collection(db, 'userCourses'), 
+    where('userId', '==', AppState.user.uid),
+    where('courseId', '==', courseId),
+    limit(1)
+  );
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    await updateDoc(doc(db, 'userCourses', snap.docs[0].id), {
+      completedLessons: newCompleted,
+      progress: progress
+    });
+    await fetchUserCourses();
+  }
+};
+
 const requestPayout = async (amount, upi) => {
   const available = (AppState.userData.allTimeEarnings - AppState.userData.paidEarnings);
   if (amount > available) return alert("Insufficient balance!");
@@ -117,6 +168,36 @@ const requestPayout = async (amount, upi) => {
   alert("Payout request submitted successfully!");
   AppState.view = 'dashboard';
   render();
+};
+
+const WelcomeModal = () => {
+  if (!AppState.showWelcomeModal) return '';
+  return `
+    <div class="modal-overlay" id="welcomeModalOverlay">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2>Follow Us</h2>
+          <button class="modal-close" id="closeWelcomeModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="video-wrapper">
+            <iframe 
+              src="https://www.youtube.com/embed/vNdteWdkweM?autoplay=1" 
+              title="YouTube video player" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <label class="checkbox-label">
+            <input type="checkbox" id="doNotShowCheckbox"> 
+            Do not show again for next 24 hours.
+          </label>
+        </div>
+      </div>
+    </div>
+  `;
 };
 
 // ─── Components ──────────────────────────────────────────────────────────────
@@ -411,13 +492,22 @@ const CourseListView = () => `
   <section class="main-content">
     <h1 style="margin-bottom: 3rem;">Courses</h1>
     <div class="course-grid">
-      ${AppState.courses.map(course => `
-        <div class="course-card">
-          <img src="${course.img}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;"/>
-          <h3>${course.title}</h3>
-          <button class="btn-start">START NOW</button>
-        </div>
-      `).join('')}
+      ${AppState.courses.map(course => {
+        const isEnrolled = AppState.userCourses.some(uc => uc.courseId === course.id);
+        return `
+          <div class="course-card">
+            <img src="${course.img}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;"/>
+            <div style="padding: 1.5rem;">
+              <h3 style="margin-bottom: 0.5rem;">${course.title}</h3>
+              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;">${course.category || 'Professional'} Package</p>
+              <button class="btn-start" onclick="event.stopPropagation(); window.enrollInCourse('${course.id}')">
+                ${isEnrolled ? 'CONTINUE LEARNING' : 'START NOW'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('')}
+      ${AppState.courses.length === 0 ? '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #64748b;">No courses found.</p>' : ''}
     </div>
   </section>
 `;
@@ -564,87 +654,120 @@ const Footer = () => `
 const render = () => {
   const app = document.querySelector('#app');
   if (AppState.user) {
-    app.innerHTML = `<div class="dashboard-container">${Sidebar()}<div id="main-view" style="flex-grow: 1; overflow-y: auto;">
-      ${AppState.view === 'dashboard' ? DashboardView() : ''}
-      ${AppState.view === 'courses' ? CourseListView() : ''}
-      ${AppState.view === 'affiliate-link' ? AffiliateLinkView() : ''}
-      ${AppState.view === 'leaderboard' ? LeaderboardView() : ''}
-      ${AppState.view === 'team' ? TeamView() : ''}
-      ${AppState.view === 'wallet' ? WalletRequestView() : ''}
-      ${AppState.view === 'profile' ? `
-        <section class="main-content">
-          <h1>My Profile</h1>
-          <div class="chart-container">
-            <p>Name: <strong>${AppState.userData?.name}</strong></p>
-            <p>Email: ${AppState.user.email}</p>
-            <p style="margin-top: 1rem;">KYC Status: <strong style="color: #4ade80;">APPROVED ✅</strong></p>
-          </div>
-        </section>
-      ` : ''}
-      ${AppState.view === 'training' ? `
-        <section class="main-content animate-fade">
-          <h1 style="margin-bottom: 2rem;">Student Training Hub</h1>
-          <div class="metrics-grid" style="grid-template-columns: 2fr 1fr;">
-            <div class="chart-container" style="padding: 0; overflow: hidden; background: black;">
-              <iframe width="100%" height="400" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
-            </div>
-            <div class="chart-container" style="overflow-y: auto; max-height: 400px;">
-              <h3 style="margin-bottom: 1rem;">Course Modules</h3>
-              <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div style="padding: 1rem; background: #f8fafc; border-radius: 10px; border-left: 4px solid #4338ca;">1. Introduction to Affiliate</div>
-                <div style="padding: 1rem; background: white; border-radius: 10px; border: 1px solid #f1f5f9;">2. Setting up your Profile</div>
-                <div style="padding: 1rem; background: white; border-radius: 10px; border: 1px solid #f1f5f9;">3. Lead Generation Masterclass</div>
-                <div style="padding: 1rem; background: white; border-radius: 10px; border: 1px solid #f1f5f9;">4. Closing the Sale</div>
+    app.innerHTML = `
+      ${WelcomeModal()}
+      <div class="dashboard-container">
+        ${Sidebar()}
+        <div id="main-view" style="flex-grow: 1; overflow-y: auto;">
+          ${AppState.view === 'dashboard' ? DashboardView() : ''}
+          ${AppState.view === 'courses' ? CourseListView() : ''}
+          ${AppState.view === 'affiliate-link' ? AffiliateLinkView() : ''}
+          ${AppState.view === 'leaderboard' ? LeaderboardView() : ''}
+          ${AppState.view === 'team' ? TeamView() : ''}
+          ${AppState.view === 'wallet' ? WalletRequestView() : ''}
+          ${AppState.view === 'profile' ? `
+            <section class="main-content">
+              <h1>My Profile</h1>
+              <div class="chart-container">
+                <p>Name: <strong>${AppState.userData?.name}</strong></p>
+                <p>Email: ${AppState.user.email}</p>
+                <p style="margin-top: 1rem;">KYC Status: <strong style="color: #4ade80;">APPROVED ✅</strong></p>
               </div>
-            </div>
-          </div>
-        </section>
-      ` : ''}
-      ${AppState.view === 'webinars' ? `
-        <section class="main-content animate-fade">
-          <h1 style="margin-bottom: 2rem;">Live Webinars</h1>
-          <div class="metrics-grid">
-            <div class="chart-container" style="background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); color: white; border: none;">
-              <div style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1rem;">Next Session</div>
-              <h2>Strategic Scaling & Passive Income</h2>
-              <p style="margin: 1rem 0; opacity: 0.9;">Join us this Sunday for an exclusive session with top earners.</p>
-              <div style="display: flex; gap: 20px; font-weight: 700;">
-                <div>24h : 12m : 44s</div>
-              </div>
-              <button class="btn" style="background: white; color: #4338ca; margin-top: 2rem; width: 100%;">Set Reminder</button>
-            </div>
-            <div class="chart-container">
-              <h3>Recent Recordings</h3>
-              <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-                  <span>Sales Psychology 101</span>
-                  <i class="fas fa-play-circle" style="color: #4338ca; font-size: 1.2rem;"></i>
+            </section>
+          ` : ''}
+          ${AppState.view === 'training' ? (() => {
+            const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || AppState.courses[0] || {};
+            const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
+            const completed = enrollment.completedLessons || [];
+            
+            return `
+              <section class="main-content animate-fade">
+                <h1 style="margin-bottom: 0.5rem;">${course.title || 'Course Training'}</h1>
+                <p style="color: #64748b; margin-bottom: 2rem;">Master your skills with ${course.title}</p>
+                
+                <div class="metrics-grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
+                  <div class="chart-container" style="padding: 0; overflow: hidden; background: black; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+                    <div style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #1e1b4b;">
+                      <i class="fas fa-play-circle" style="font-size: 5rem; color: #4338ca; cursor: pointer;"></i>
+                    </div>
+                  </div>
+                  <div class="chart-container" style="overflow-y: auto; max-height: 500px; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                      <h3 style="margin: 0;">Course Modules</h3>
+                      <span style="font-size: 0.8rem; font-weight: 700; color: #16a34a;">${enrollment.progress || 0}% Complete</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                      ${Array.from({ length: course.totalLessons || 5 }).map((_, i) => {
+                        const lessonId = `L${i+1}`;
+                        const isDone = completed.includes(lessonId);
+                        return `
+                          <div class="training-module ${isDone ? 'completed' : ''}" 
+                               onclick="window.updateProgress('${course.id}', '${lessonId}')"
+                               style="padding: 1.2rem; background: ${isDone ? '#f0fdf4' : 'white'}; border-radius: 12px; border: 1px solid ${isDone ? '#bcf0da' : '#f1f5f9'}; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s;">
+                            <div style="width: 24px; height: 24px; border-radius: 50%; background: ${isDone ? '#22c55e' : '#f1f5f9'}; display: flex; align-items: center; justify-content: center; color: ${isDone ? 'white' : '#94a3b8'};">
+                              ${isDone ? '<i class="fas fa-check" style="font-size: 0.7rem;"></i>' : i+1}
+                            </div>
+                            <span style="font-weight: 600; color: ${isDone ? '#166534' : '#1e293b'}; flex-grow: 1;">Lesson ${i+1}: Module Title</span>
+                            ${!isDone ? '<i class="fas fa-play" style="font-size: 0.8rem; color: #4338ca;"></i>' : ''}
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-                  <span>Lead Magnet Optimization</span>
-                  <i class="fas fa-play-circle" style="color: #4338ca; font-size: 1.2rem;"></i>
+              </section>
+            `;
+          })() : ''}
+          ${AppState.view === 'webinars' ? `
+            <section class="main-content animate-fade">
+              <h1 style="margin-bottom: 2rem;">Live Webinars</h1>
+              <div class="metrics-grid">
+                <div class="chart-container" style="background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); color: white; border: none;">
+                  <div style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1rem;">Next Session</div>
+                  <h2>Strategic Scaling & Passive Income</h2>
+                  <p style="margin: 1rem 0; opacity: 0.9;">Join us this Sunday for an exclusive session with top earners.</p>
+                  <div style="display: flex; gap: 20px; font-weight: 700;">
+                    <div>24h : 12m : 44s</div>
+                  </div>
+                  <button class="btn" style="background: white; color: #4338ca; margin-top: 2rem; width: 100%;">Set Reminder</button>
+                </div>
+                <div class="chart-container">
+                  <h3>Recent Recordings</h3>
+                  <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+                      <span>Sales Psychology 101</span>
+                      <i class="fas fa-play-circle" style="color: #4338ca; font-size: 1.2rem;"></i>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+                      <span>Lead Magnet Optimization</span>
+                      <i class="fas fa-play-circle" style="color: #4338ca; font-size: 1.2rem;"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-      ` : ''}
-      ${['upgrade', 'reports', 'offers', 'earning-target', 'create-account'].includes(AppState.view) ? `
-        <section class="main-content animate-fade-up">
-          <h1>${AppState.view.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}</h1>
-          <div class="chart-container" style="text-align: center; padding: 5rem;">
-            <i class="fas fa-tools" style="font-size: 4rem; color: #6366f1; margin-bottom: 2rem;"></i>
-            <h2>Section Under Development</h2>
-            <p style="color: #64748b;">We are working hard to bring this feature to your dashboard very soon!</p>
-          </div>
-        </section>
-      ` : ''}
-      ${Footer()}
-    </div></div>`;
+            </section>
+          ` : ''}
+          ${['upgrade', 'reports', 'offers', 'earning-target', 'create-account'].includes(AppState.view) ? `
+            <section class="main-content animate-fade-up">
+              <h1>${AppState.view.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}</h1>
+              <div class="chart-container" style="text-align: center; padding: 5rem;">
+                <i class="fas fa-tools" style="font-size: 4rem; color: #6366f1; margin-bottom: 2rem;"></i>
+                <h2>Section Under Development</h2>
+                <p style="color: #64748b;">We are working hard to bring this feature to your dashboard very soon!</p>
+              </div>
+            </section>
+          ` : ''}
+          ${Footer()}
+        </div>
+      </div>
+    `;
     
-    // Auto-fetch data on view change
     if (AppState.view === 'leaderboard' && AppState.leaderboard.length === 0) fetchLeaderboard();
     if (AppState.view === 'team' && AppState.team.length === 0) fetchTeam();
+    if (AppState.view === 'courses' && AppState.courses.length === 0) {
+      fetchCourses();
+      fetchUserCourses();
+    }
   } else {
     app.innerHTML = `<header style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border);">
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -749,6 +872,9 @@ const attachEvents = () => {
     };
   }
 
+  window.enrollInCourse = enrollInCourse;
+  window.updateProgress = updateProgress;
+
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.onclick = () => copyToClipboard(btn.dataset.text);
   });
@@ -757,6 +883,27 @@ const attachEvents = () => {
   if (toSignUp) toSignUp.onclick = () => { AppState.view = 'signup'; render(); };
   const toSignIn = document.querySelector('#toSignIn');
   if (toSignIn) toSignIn.onclick = () => { AppState.view = 'login'; render(); };
+
+  // Welcome Modal Logic
+  const welcomeOverlay = document.querySelector('#welcomeModalOverlay');
+  if (welcomeOverlay) {
+    const closeBtn = document.querySelector('#closeWelcomeModal');
+    const checkbox = document.querySelector('#doNotShowCheckbox');
+    
+    const closeModal = () => {
+      if (checkbox && checkbox.checked) {
+        const expiry = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 hours
+        localStorage.setItem('hideWelcomeModalUntil', expiry);
+      }
+      AppState.showWelcomeModal = false;
+      render();
+    };
+
+    if (closeBtn) closeBtn.onclick = closeModal;
+    welcomeOverlay.onclick = (e) => {
+      if (e.target === welcomeOverlay) closeModal();
+    };
+  }
 
   // Scroll to Top Logic
   const scrollTopBtn = document.querySelector('#scrollTopBtn');
@@ -774,7 +921,16 @@ onAuthStateChanged(auth, (user) => {
   AppState.user = user;
   if (user) {
     fetchUserData(user.uid);
-    if (['home', 'login', 'signup'].includes(AppState.view)) AppState.view = 'dashboard';
+    if (['home', 'login', 'signup'].includes(AppState.view)) {
+      AppState.view = 'dashboard';
+      
+      // Check if we should show the welcome modal
+      const hideUntil = localStorage.getItem('hideWelcomeModalUntil');
+      const now = new Date().getTime();
+      if (!hideUntil || now > parseInt(hideUntil)) {
+        AppState.showWelcomeModal = true;
+      }
+    }
   } else {
     AppState.userData = null;
     if (!['login', 'signup'].includes(AppState.view)) AppState.view = 'home';
