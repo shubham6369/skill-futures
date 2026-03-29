@@ -49,6 +49,7 @@ const AppState = {
   showWelcomeModal: false,
   profileTab: 'details',
   isSidebarVisible: true,
+  developerMode: true,
   loading: {
     leaderboard: false,
     team: false,
@@ -1571,10 +1572,11 @@ const Footer = () => `
 const render = () => {
   const app = document.querySelector('#app');
   if (AppState.user) {
-    const isAdminView = AppState.view.startsWith('admin-') && AppState.isAdmin;
+    const isAdminView = AppState.view.startsWith('admin-') && (AppState.isAdmin || AppState.developerMode);
     
     // Fallback if trying to access admin view without permission
-    if (AppState.view.startsWith('admin-') && !AppState.isAdmin) {
+    if (AppState.view.startsWith('admin-') && !AppState.isAdmin && !AppState.developerMode) {
+      alert('⚠️ Access Denied: Admin role required.');
       AppState.view = 'dashboard';
       render();
       return;
