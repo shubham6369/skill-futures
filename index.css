@@ -396,7 +396,7 @@ body {
 .footer {
   background: #0f172a;
   color: white;
-  padding: 4rem 2rem 0;
+  padding: 2.8rem 2rem 0;
   border-top: 1px solid var(--card-border);
   font-family: 'Poppins', sans-serif;
 }
@@ -406,12 +406,12 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 3rem;
   max-width: 1200px;
-  margin: 0 auto 4rem;
+  margin: 0 auto 2.8rem;
 }
 
 .footer-col h3 {
   font-size: 1.2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   position: relative;
   font-weight: 700;
 }
@@ -429,7 +429,7 @@ body {
 .footer-description {
   color: var(--text-dim);
   font-size: 0.9rem;
-  margin: 1.5rem 0;
+  margin: 1rem 0;
   line-height: 1.8;
 }
 
@@ -438,7 +438,7 @@ body {
 }
 
 .footer-links li {
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
 }
 
 .footer-links a {
@@ -456,7 +456,7 @@ body {
 .footer-socials {
   display: flex;
   gap: 1.2rem;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 .footer-socials a {
@@ -473,7 +473,7 @@ body {
 .footer-contact-item {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.7rem;
   color: var(--text-dim);
   font-size: 0.9rem;
 }
