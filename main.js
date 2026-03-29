@@ -68,7 +68,45 @@ const AppState = {
   commissionSettings: {
     direct: 400,
     passive: 100
-  }
+  },
+  trainings: [
+    { 
+      id: 'tr-1', 
+      title: 'Affiliate Marketing Masterclass | Complete Success Roadmap', 
+      desc: 'Learn the secrets of high-ticket affiliate marketing.', 
+      thumb: 'training_thumbnail_1_1774767017754.png' 
+    },
+    { 
+      id: 'tr-2', 
+      title: 'Lead Generation Formula | 100+ Leads Daily Strategy', 
+      desc: 'How to automate your lead generation process.', 
+      thumb: 'training_thumbnail_2_1774767039736.png' 
+    },
+    { 
+      id: 'tr-3', 
+      title: 'MLM Leadership Blueprint | Build a Massive Team', 
+      desc: 'The psychology of building long-term teams.', 
+      thumb: 'training_thumbnail_3_1774767068804.png' 
+    },
+    { 
+      id: 'tr-4', 
+      title: 'Sales Closing Secrets | Handle Every Objection', 
+      desc: 'Close deals with confidence and authority.', 
+      thumb: 'training_thumbnail_1_1774767017754.png' 
+    },
+    { 
+      id: 'tr-5', 
+      title: 'Personal Branding | Become an Industry Authority', 
+      desc: 'Build a brand that attracts premium clients.', 
+      thumb: 'training_thumbnail_2_1774767039736.png' 
+    },
+    { 
+      id: 'tr-6', 
+      title: 'Instagram Growth Hack | 10k Followers in 30 Days', 
+      desc: 'Algorithm secrets to go viral consistently.', 
+      thumb: 'training_thumbnail_3_1774767068804.png' 
+    }
+  ]
 };
 
 // ─── Data Actions ────────────────────────────────────────────────────────────
@@ -1058,8 +1096,8 @@ const Sidebar = () => `
       <li class="sidebar-item ${AppState.view === 'reports' ? 'active' : ''}" data-route="reports">
         <i class="fas fa-file-alt"></i> Reports <i class="fas fa-chevron-right arrow"></i>
       </li>
-      <li class="sidebar-item ${AppState.view === 'training' ? 'active' : ''}" data-route="training">
-        <i class="fas fa-video"></i> Training
+      <li class="sidebar-item ${AppState.view === 'trainings' ? 'active' : ''}" data-route="trainings">
+        <i class="fas fa-video"></i> Trainings
       </li>
       <li class="sidebar-item ${AppState.view === 'webinars' ? 'active' : ''}" data-route="webinars">
         <i class="fas fa-video"></i> Webinars
@@ -1196,6 +1234,38 @@ const LeaderboardView = () => `
           `).join('')}
         </tbody>
       </table>
+    </div>
+  </section>
+`;
+
+const TrainingsView = () => `
+  <section class="main-content animate-fade">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3rem;">
+      <h1>Trainings 🎓</h1>
+      <p style="color: #64748b; font-weight: 500;">Access exclusive sessions & webinars</p>
+    </div>
+
+    <div class="training-grid">
+      ${AppState.trainings.map((t, i) => `
+        <div class="training-card animate-fade-up stagger-${(i % 6) + 1}">
+          <div class="training-thumb-container">
+            <img src="${t.thumb}" alt="${t.title}" class="training-thumb" loading="lazy">
+            <div class="play-overlay">
+              <div class="play-icon">
+                <i class="fas fa-play"></i>
+              </div>
+            </div>
+          </div>
+          <div class="training-info">
+            <h3 class="training-title">${t.title}</h3>
+            <div class="training-desc">
+              <span>Exclusive Session</span>
+              <span>•</span>
+              <span>HD Mastery</span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
     </div>
   </section>
 `;
@@ -1586,6 +1656,7 @@ const render = () => {
     let content = '';
     switch(AppState.view) {
       case 'dashboard': content = DashboardView(); break;
+      case 'trainings': content = TrainingsView(); break;
       case 'courses': content = CourseListView(); break;
       case 'affiliate-link': content = AffiliateLinkView(); break;
       case 'leaderboard': content = LeaderboardView(); break;
