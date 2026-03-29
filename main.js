@@ -1516,6 +1516,78 @@ const PrivacyPolicyView = () => `
   </section>
 `;
 
+const RefundPolicyView = () => `
+  <section class="main-content animate-fade">
+    <div style="max-width: 900px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 4rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Refund & Return Policy 💳</h1>
+        <p style="color: #64748b; font-size: 1.1rem;">Clear, fair, and transparent policies for your peace of mind.</p>
+      </div>
+
+      <div class="chart-container" style="padding: 3rem; line-height: 1.8;">
+        <div style="background: rgba(14, 165, 233, 0.05); padding: 2rem; border-radius: 15px; border-left: 4px solid var(--accent); margin-bottom: 3rem;">
+          <h2 style="margin-top: 0; color: #0284c7;">1. Overview</h2>
+          <p>At Skill Futures, we aim to provide high-quality digital learning experiences to all our users. We believe in transparency and fairness, and our refund policy is designed to ensure a smooth and trustworthy experience.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 2.5rem;">
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">2. Refund Window</h3>
+            <p style="color: #475569;">We offer a <strong>3-day refund window</strong> from the date of purchase. Users can request a refund within this period if they are not satisfied with their purchase.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">3. Eligibility Criteria</h3>
+            <ul style="color: #475569; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+              <li>The request must be made within 3 days of purchase.</li>
+              <li>The course/service should not be significantly accessed or completed.</li>
+              <li>Valid purchase details or proof must be provided.</li>
+            </ul>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">4. Affiliate / Referral Purchases</h3>
+            <p style="color: #475569;">In case of purchases made through any affiliate or referral link, refund requests are still accepted within the 3-day window. However, once the allowed time period has passed, no refund requests will be considered.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">5. Processing Charges</h3>
+            <p style="color: #475569;">For all approved refunds, a <strong>2% processing fee</strong> will be deducted from the total paid amount. The remaining amount will be refunded to the original payment method.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">6. Refund Process</h3>
+            <p style="color: #475569;">Once a refund request is submitted, our team will review and verify the request. You will be notified via email regarding the approval or rejection. If approved, the refund will be processed within 5–7 business days.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">7. Late or Missing Refunds</h3>
+            <p style="color: #475569;">If you haven’t received your refund, please check your bank account or contact your payment provider. If needed, reaching out to our support team is always an option.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">8. How to Request a Refund</h3>
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+              <p style="margin-bottom: 1rem; font-weight: 700;">Please provide these details:</p>
+              <ul style="list-style: none; color: #475569; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>📍 Full Name</li>
+                <li>📧 Registered Email ID</li>
+                <li>📅 Date of Purchase</li>
+                <li>🎓 Course Name</li>
+                <li>💡 Reason for Refund</li>
+              </ul>
+              <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dotted #cbd5e1;">
+                <p><strong>Contact Support:</strong> skillfuturessupport@gmail.com</p>
+                <p><strong>WhatsApp:</strong> +91 8923938520</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+`;
+
 const HomeView = () => `
   <div class="hero">
     <img src="/logo.png" alt="SkillFutures Logo" style="height: 80px; margin-bottom: 2rem;">
@@ -1619,7 +1691,7 @@ const Footer = () => `
           <li><a>Contact Us</a></li>
           <li><a>Disclaimer</a></li>
           <li><a data-route="privacy-policy" style="cursor: pointer;">Privacy Policy</a></li>
-          <li><a>Refund Policy</a></li>
+          <li><a data-route="refund-policy" style="cursor: pointer;">Refund Policy</a></li>
           <li><a>Terms & Conditions</a></li>
         </ul>
       </div>
@@ -1675,6 +1747,7 @@ const render = () => {
       case 'wallet': content = WalletRequestView(); break;
       case 'profile': content = ProfileView(); break;
       case 'privacy-policy': content = PrivacyPolicyView(); break;
+      case 'refund-policy': content = RefundPolicyView(); break;
       case 'admin-dashboard': content = AdminDashboardView(); break;
       case 'admin-users': content = AdminUsersView(); break;
       case 'admin-courses': content = AdminCoursesView(); break;
@@ -1792,7 +1865,12 @@ const render = () => {
         </div>
         <nav>${AppState.view === 'home' ? `<button class="btn btn-primary" data-route="signup">Join Now</button><button class="btn btn-outline" data-route="login" style="margin-left:1rem;">Login</button>` : ''}</nav>
       </header>
-      <main>${AppState.view === 'home' ? HomeView() : (AppState.view === 'privacy-policy' ? PrivacyPolicyView() : (AppState.view === 'login' ? AuthView('login') : AuthView('signup')))}</main>
+      <main>${
+        AppState.view === 'home' ? HomeView() : 
+        AppState.view === 'privacy-policy' ? PrivacyPolicyView() : 
+        AppState.view === 'refund-policy' ? RefundPolicyView() :
+        AppState.view === 'login' ? AuthView('login') : AuthView('signup')
+      }</main>
       ${Footer()}
     `;
   }
