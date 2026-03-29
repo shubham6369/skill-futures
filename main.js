@@ -1001,7 +1001,8 @@ const AdminSettingsView = () => {
 };
 
 const AdminSidebar = () => `
-  <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''}" style="background: #0f172a; border-right: 1px solid #1e293b;">
+  <div class="mobile-overlay ${AppState.isSidebarVisible ? 'active' : ''}" id="adminMobileOverlay"></div>
+  <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''} ${AppState.isSidebarVisible ? 'mobile-active' : ''}" style="background: #0f172a; border-right: 1px solid #1e293b;">
     <div class="sidebar-logo" style="border-bottom: 1px solid #1e293b;">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1058,7 +1059,8 @@ const AdminSidebar = () => `
 `;
 
 const Sidebar = () => `
-  <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''}">
+  <div class="mobile-overlay ${AppState.isSidebarVisible ? 'active' : ''}" id="mobileOverlay"></div>
+  <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''} ${AppState.isSidebarVisible ? 'mobile-active' : ''}">
     <div class="sidebar-logo">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1077,6 +1079,9 @@ const Sidebar = () => `
       </li>
       <li class="sidebar-item ${AppState.view === 'profile' ? 'active' : ''}" data-route="profile">
         <i class="fas fa-user"></i> My Profile
+      </li>
+      <li class="sidebar-item ${AppState.view === 'trainings' ? 'active' : ''}" data-route="trainings">
+        <i class="fas fa-video"></i> Trainings
       </li>
       <li class="sidebar-item ${AppState.view === 'affiliate-link' ? 'active' : ''}" data-route="affiliate-link">
         <i class="fas fa-link"></i> Affiliate Link
@@ -1790,8 +1795,22 @@ const render = () => {
 
 const attachEvents = () => {
   document.querySelectorAll('[data-route]').forEach(el => {
-    el.onclick = () => { AppState.view = el.dataset.route; render(); };
+    el.onclick = () => { 
+      AppState.view = el.dataset.route; 
+      if (window.innerWidth <= 768) {
+        AppState.isSidebarVisible = false;
+      }
+      render(); 
+    };
   });
+
+  const overlay = document.querySelector('#mobileOverlay') || document.querySelector('#adminMobileOverlay');
+  if (overlay) {
+    overlay.onclick = () => {
+      AppState.isSidebarVisible = false;
+      render();
+    };
+  }
 
   const logoutBtn = document.querySelector('#logoutBtn');
   if (logoutBtn) logoutBtn.onclick = () => signOut(auth);
