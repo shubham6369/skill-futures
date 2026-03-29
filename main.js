@@ -54,7 +54,12 @@ const AppState = {
     team: false,
     courses: false,
     adminUsers: false,
-    adminPayouts: false
+    adminPayouts: false,
+    adminSettings: false
+  },
+  commissionSettings: {
+    direct: 400,
+    passive: 100
   }
 };
 
@@ -208,6 +213,47 @@ const fetchAdminUsers = async () => {
   AppState.allUsers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   AppState.loading.adminUsers = false;
   render();
+};
+
+const fetchAdminSettings = async () => {
+  if (!AppState.isAdmin || AppState.loading.adminSettings) return;
+  AppState.loading.adminSettings = true;
+  try {
+    const sDoc = await getDoc(doc(db, 'settings', 'commissions'));
+    if (sDoc.exists()) {
+      AppState.commissionSettings = sDoc.data();
+    } else {
+      // Initialize if missing
+      await setDoc(doc(db, 'settings', 'commissions'), AppState.commissionSettings);
+    }
+  } catch (err) {
+    console.error("Error fetching settings:", err);
+  }
+  AppState.loading.adminSettings = false;
+  render();
+};
+
+const saveAdminSettings = async (settings) => {
+  try {
+    await setDoc(doc(db, 'settings', 'commissions'), settings);
+    AppState.commissionSettings = settings;
+    alert("System settings updated successfully!");
+    render();
+  } catch (err) {
+    alert("Error saving settings: " + err.message);
+  }
+};
+
+const saveUser = async (id, updatedData) => {
+  try {
+    await updateDoc(doc(db, 'users', id), updatedData);
+    alert("User profile updated successfully!");
+    await fetchAdminUsers();
+    AppState.adminModal = null;
+    render();
+  } catch (err) {
+    alert("Error saving user: " + err.message);
+  }
 };
 
 const fetchAdminPayouts = async () => {
@@ -406,6 +452,55 @@ const AdminModal = () => {
       </div>
     `;
   }
+
+  if (type === 'user-edit') {
+    return `
+      <div class="modal-overlay" id="adminModalOverlay">
+        <div class="modal-container" style="max-width: 500px;">
+          <div class="modal-header">
+            <h2><i class="fas fa-user-edit"></i> Edit User Profile</h2>
+            <button class="modal-close" onclick="AppState.adminModal = null; render();">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="adminUserEditForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <input type="hidden" id="editUserId" value="${data?.id || ''}" />
+              
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="editUserName" class="form-input-styled" value="${data?.name || ''}" required />
+              </div>
+
+              <div class="form-group">
+                <label>Platform Role</label>
+                <select id="editUserRole" class="form-input-styled" style="width: 100%; appearance: none; padding-right: 2rem; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right%200.7rem%20top%2050%25; background-size: 0.65rem%20auto;">
+                  <option value="user" ${data?.role === 'user' ? 'selected' : ''}>Standard User</option>
+                  <option value="admin" ${data?.role === 'admin' ? 'selected' : ''}>Administrator</option>
+                </select>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label>Earnings (All Time)</label>
+                  <input type="number" id="editUserEarnings" class="form-input-styled" value="${data?.allTimeEarnings || 0}" required />
+                </div>
+                <div class="form-group">
+                  <label>Paid (₹)</label>
+                  <input type="number" id="editUserPaid" class="form-input-styled" value="${data?.paidEarnings || 0}" required />
+                </div>
+              </div>
+
+              <div class="modal-actions" style="margin-top: 1rem;">
+                <button type="submit" class="btn btn-save" style="width: 100%; border-radius: 12px;">
+                  <i class="fas fa-check-circle"></i> UPDATE IDENTITY
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   return '';
 };
 
@@ -609,7 +704,7 @@ const AdminUsersView = () => `
             <th>Referral Details</th>
             <th>Earnings Profile</th>
             <th>Platform Access</th>
-            <th style="text-align: right;">Join Date</th>
+            <th style="text-align: right;">Operations</th>
           </tr>
         </thead>
         <tbody>
@@ -649,8 +744,10 @@ const AdminUsersView = () => `
                   ${user.role || 'user'}
                 </span>
               </td>
-              <td style="text-align: right; color: #64748b; font-size: 0.85rem;">
-                ${new Date(user.joinedAt).toLocaleDateString()}
+              <td style="text-align: right;">
+                <button class="admin-action-btn" title="Edit User" onclick="window.showUserEditModal('${user.id}')">
+                   <i class="fas fa-user-edit"></i>
+                </button>
               </td>
             </tr>
           `).join('')}
@@ -797,6 +894,106 @@ const AdminNoticesView = () => `
   </section>
 `;
 
+const AdminSettingsView = () => {
+  const settings = AppState.commissionSettings;
+  return `
+    <section class="main-content animate-fade">
+      <div class="admin-section-header">
+        <h1>Global System Configuration</h1>
+        <div class="badge-admin status-badge" style="background: #f59e0b;"><i class="fas fa-cog"></i> Advanced Settings</div>
+      </div>
+
+      <div class="chart-container" style="max-width: 600px;">
+        <h3 style="margin-bottom: 2rem;"><i class="fas fa-percentage"></i> Commission Architecture</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 2.5rem;">Configure the payout amounts for referrals and passive income. Any changes here will be applied immediately to all new affiliate registrations.</p>
+        
+        <form id="adminSettingsForm" style="display: flex; flex-direction: column; gap: 2rem;">
+          <div class="form-group">
+            <label style="font-weight: 700; color: #1e293b;">Direct Referral Commission (₹)</label>
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 8px;">
+               <div style="background: rgba(99, 102, 241, 0.1); color: #4338ca; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">₹</div>
+               <input type="number" id="directComm" class="form-input-styled" value="${settings.direct}" required style="font-size: 1.2rem; font-weight: 800;">
+            </div>
+            <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px;">The fixed amount awarded to the direct referrer of a new premium signup.</p>
+          </div>
+
+          <div class="form-group">
+            <label style="font-weight: 700; color: #1e293b;">Passive Team Commission (₹)</label>
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 8px;">
+               <div style="background: rgba(16, 185, 129, 0.1); color: #059669; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">₹</div>
+               <input type="number" id="passiveComm" class="form-input-styled" value="${settings.passive}" required style="font-size: 1.2rem; font-weight: 800;">
+            </div>
+            <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px;">The indirect commission awarded to the sponsor of the referrer.</p>
+          </div>
+
+          <div style="margin-top: 1rem; padding-top: 2rem; border-top: 1px solid #f1f5f9;">
+            <button type="submit" class="btn btn-save" style="width: 100%; height: 55px; border-radius: 15px; background: #0f172a; font-size: 1rem; letter-spacing: 0.5px;">
+              <i class="fas fa-shield-check"></i> SYNC SYSTEM CONFIGURATION
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  `;
+};
+
+const AdminSidebar = () => `
+  <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''}" style="background: #0f172a; border-right: 1px solid #1e293b;">
+    <div class="sidebar-logo" style="border-bottom: 1px solid #1e293b;">
+      <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="/logo.png" alt="Logo" style="height: 32px; flex-shrink: 0; filter: brightness(0) invert(1);"/>
+          <div style="font-size: 1.3rem; font-weight: 800; color: #6366f1; letter-spacing: -0.5px; white-space: nowrap;">SkillAdmin</div>
+        </div>
+        <div style="font-size: 0.6rem; color: #94a3b8; font-weight: 600; padding-left: 40px; margin-top: -4px;">"Platform Control Center"</div>
+      </div>
+      <button id="sidebarToggle" class="sidebar-toggle-btn" style="color: #94a3b8; border-color: #1e293b;">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <ul class="sidebar-nav">
+      <li style="padding: 1.5rem 1.5rem 0.5rem; font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 1px;">Main Dashboard</li>
+      <li class="sidebar-item ${AppState.view === 'dashboard' ? 'active' : ''}" data-route="dashboard" style="color: #94a3b8;">
+        <i class="fas fa-arrow-left"></i> Back to User Site
+      </li>
+      
+      <li style="padding: 1.5rem 1.5rem 0.5rem; font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 1px;">Management</li>
+      <li class="sidebar-item ${AppState.view === 'admin-dashboard' ? 'active' : ''}" data-route="admin-dashboard" style="color: #94a3b8;">
+        <i class="fas fa-chart-pie"></i> Admin Overview
+      </li>
+      <li class="sidebar-item ${AppState.view === 'admin-users' ? 'active' : ''}" data-route="admin-users" style="color: #94a3b8;">
+        <i class="fas fa-users-gear"></i> Manage Users
+      </li>
+      <li class="sidebar-item ${AppState.view === 'admin-courses' ? 'active' : ''}" data-route="admin-courses" style="color: #94a3b8;">
+        <i class="fas fa-layer-group"></i> Manage Courses
+      </li>
+      <li class="sidebar-item ${AppState.view === 'admin-payouts' ? 'active' : ''}" data-route="admin-payouts" style="color: #94a3b8;">
+        <i class="fas fa-hand-holding-dollar"></i> Payout Requests
+      </li>
+      <li class="sidebar-item ${AppState.view === 'admin-notices' ? 'active' : ''}" data-route="admin-notices" style="color: #94a3b8;">
+        <i class="fas fa-bullhorn"></i> Global Notices
+      </li>
+      <li class="sidebar-item ${AppState.view === 'admin-settings' ? 'active' : ''}" data-route="admin-settings" style="color: #94a3b8;">
+        <i class="fas fa-cog"></i> Global Settings
+      </li>
+    </ul>
+
+    <div style="padding: 1.5rem; border-top: 1px solid #1e293b; margin-top: auto;">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; padding: 0.5rem;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;">AD</div>
+        <div style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
+          <div style="font-size: 0.8rem; font-weight: 700; color: white;">Admin User</div>
+          <div style="font-size: 0.6rem; color: #64748b;">Super Admin</div>
+        </div>
+      </div>
+      <button id="logoutBtn" style="width: 100%; padding: 0.7rem; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;">
+        <i class="fas fa-power-off"></i> Logout
+      </button>
+    </div>
+  </aside>
+`;
+
 const Sidebar = () => `
   <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''}">
     <div class="sidebar-logo">
@@ -854,25 +1051,6 @@ const Sidebar = () => `
       <li class="sidebar-item ${AppState.view === 'create-account' ? 'active' : ''}" data-route="create-account">
         <i class="fas fa-user-plus"></i> Create Account
       </li>
-      
-      ${AppState.isAdmin ? `
-        <li style="padding: 1rem 1.5rem 0.5rem; font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Admin Panel</li>
-        <li class="sidebar-item ${AppState.view === 'admin-dashboard' ? 'active' : ''}" data-route="admin-dashboard">
-          <i class="fas fa-shield-halved"></i> Admin Home
-        </li>
-        <li class="sidebar-item ${AppState.view === 'admin-users' ? 'active' : ''}" data-route="admin-users">
-          <i class="fas fa-users-gear"></i> Manage Users
-        </li>
-        <li class="sidebar-item ${AppState.view === 'admin-courses' ? 'active' : ''}" data-route="admin-courses">
-          <i class="fas fa-layer-group"></i> Manage Courses
-        </li>
-        <li class="sidebar-item ${AppState.view === 'admin-payouts' ? 'active' : ''}" data-route="admin-payouts">
-          <i class="fas fa-hand-holding-dollar"></i> Payout Requests
-        </li>
-        <li class="sidebar-item ${AppState.view === 'admin-notices' ? 'active' : ''}" data-route="admin-notices">
-          <i class="fas fa-bullhorn"></i> Manage Notices
-        </li>
-      ` : ''}
     </ul>
     
     <div style="padding: 1.5rem; border-top: 1px solid #f1f5f9; margin-top: auto;">
@@ -882,6 +1060,16 @@ const Sidebar = () => `
     </div>
   </aside>
 `;
+
+const AdminLayout = (content) => `
+  <div class="dashboard-container admin-layout ${!AppState.isSidebarVisible ? 'sidebar-hidden' : ''}" style="background: #f8fafc;">
+    ${AdminSidebar()}
+    <div id="main-view" style="flex-grow: 1; overflow-y: auto; background: #f8fafc;">
+      ${content}
+    </div>
+  </div>
+`;
+
 
 const DashboardView = () => {
   const m = AppState.userData || {};
@@ -1107,31 +1295,117 @@ const AffiliateLinkView = () => {
   `;
 };
 
-const CourseListView = () => `
-  <section class="main-content">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h1>Courses</h1>
-      <span style="background: rgba(67, 56, 202, 0.1); color: #4338ca; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;">
-        ${AppState.courses.length} Available
-      </span>
-    </div>
-    <div class="course-grid">
-      ${AppState.courses.map(course => `
-        <div class="course-card-v2">
-          <img src="${course.img || '/logo.png'}" class="course-img-v2" alt="${course.title}" onerror="this.src='/logo.png'"/>
-          <h3>${course.title || 'Untitled Course'}</h3>
-          <button class="btn-start-course" onclick="event.stopPropagation(); window.enrollInCourse('${course.id}')">
-            START NOW
-          </button>
+const PrivacyPolicyView = () => `
+  <section class="main-content animate-fade">
+    <div style="max-width: 900px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 4rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Privacy Policy 🛡️</h1>
+        <p style="color: #64748b; font-size: 1.1rem;">Your trust is our priority. Learn how we handle your data with care at Skill Futures.</p>
+      </div>
+
+      <div class="chart-container" style="padding: 3rem; line-height: 1.8;">
+        <div style="background: rgba(99, 102, 241, 0.05); padding: 2rem; border-radius: 15px; border-left: 4px solid #6366f1; margin-bottom: 3rem;">
+          <h2 style="margin-top: 0; color: #4338ca;">Welcome to Skill Futures 🚀</h2>
+          <p>We are delighted to welcome you to Skill Futures, a platform dedicated to empowering individuals through skills, learning, and growth. Your trust is extremely important to us, and we are committed to protecting your privacy while providing you with a safe and valuable learning experience.</p>
         </div>
-      `).join('')}
-      ${AppState.courses.length === 0 ? `
-        <div style="grid-column: 1/-1; text-align: center; padding: 4rem 2rem; background: white; border-radius: 20px; border: 2px dashed #e2e8f0;">
-          <i class="fas fa-book-open" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1.5rem;"></i>
-          <h2 style="color: #64748b; margin-bottom: 0.5rem;">No Courses Found</h2>
-          <p style="color: #94a3b8;">It seems like the course library is empty. Please check back later.</p>
+
+        <div style="display: flex; flex-direction: column; gap: 2.5rem;">
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">1. Introduction</h3>
+            <p style="color: #475569;">At Skill Futures, we value your trust and are committed to safeguarding your personal information. This Privacy Policy explains how we collect, use, protect, and manage your data in a transparent and responsible manner.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">2. Information We Collect</h3>
+            <p style="color: #475569;">When you use our website or services, we may collect basic information such as your name, contact details, and your activity on our platform. This information is collected only to the extent necessary to provide you with a better and more personalized experience.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">3. Use of Your Information</h3>
+            <p style="color: #475569;">Your information is used strictly to enhance your experience. This includes recommending relevant courses, sending important updates, and understanding your needs. We do not misuse your data for any unethical or unauthorized purposes.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">4. Secure Transactions</h3>
+            <p style="color: #475569;">All payments made on our platform are processed through secure and trusted payment gateways. We do not store your financial information, ensuring complete safety of your transactions.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">5. Data Protection & Security</h3>
+            <p style="color: #475569;">We implement advanced security measures to protect your personal data from unauthorized access, misuse, or disclosure. However, due to the nature of the internet, we also encourage users to remain cautious and protect their personal information.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">6. Use of Cookies</h3>
+            <p style="color: #475569;">We use cookies to analyze user behavior and improve website performance. Cookies help us make the platform faster, smoother, and more user-friendly. You have full control over whether to accept or disable cookies.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">7. Data Sharing Policy</h3>
+            <p style="color: #475569;">We respect your privacy and do not sell your personal information. Your data may only be shared with trusted partners when necessary for essential services such as payment processing or technical support.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">8. User Rights</h3>
+            <p style="color: #475569;">You have full control over your data. You can access, update, or request deletion of your personal information at any time. We ensure that all such requests are handled promptly and responsibly.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">9. Third-Party Links</h3>
+            <p style="color: #475569;">Our platform may contain links to external websites. Once you leave our platform, your privacy will be governed by the policies of those respective websites. We recommend reviewing their policies carefully.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">10. Policy Updates</h3>
+            <p style="color: #475569;">We may update this Privacy Policy from time to time as our services evolve. All updates will be clearly communicated on this page to keep you informed.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">11. Contact & Support</h3>
+            <p style="color: #475569;">If you have any questions, concerns, or requests regarding your privacy, you can contact us anytime. We are always here to support and assist you.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">12. Data Retention</h3>
+            <p style="color: #475569;">We retain your personal information only for as long as necessary to provide services or comply with legal obligations. Once the data is no longer needed, it is securely deleted.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">13. Automated Systems & Tracking</h3>
+            <p style="color: #475569;">We may use automated tools to analyze user behavior, such as tracking page visits and engagement. This helps us improve our services and user experience without compromising your privacy.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">14. Children’s Privacy</h3>
+            <p style="color: #475569;">Our services are not specifically intended for individuals under the age of 18. We do not knowingly collect data from minors. If such data is identified, it will be removed immediately.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">15. Misuse Protection</h3>
+            <p style="color: #475569;">To maintain a safe environment, we monitor activities on our platform. Any suspicious or harmful behavior may result in temporary or permanent account suspension.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">16. Learning Eligibility</h3>
+            <p style="color: #475569;">Our platform is open to anyone who is willing to learn and grow. However, users under the age of 18 are advised to use our services under parental or guardian guidance.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">17. User Conduct & Legal Action</h3>
+            <p style="color: #475569;">We maintain a strict policy against misconduct, abusive behavior, fraud, or misleading activities. Any violation may lead to strict actions including account suspension, permanent ban, or legal proceedings if required.</p>
+          </article>
         </div>
-      ` : ''}
+
+        <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #f1f5f9; text-align: center;">
+          <h3 style="color: #1e1b4b;">Final Agreement</h3>
+          <p style="color: #64748b;">By accessing and using Skill Futures, you agree to this Privacy Policy. We are committed to maintaining transparency, trust, and a secure environment for all our users.</p>
+          
+          <div style="margin-top: 2rem;">
+            <div style="color: #4338ca; font-weight: 800; font-size: 1.2rem; margin-bottom: 0.5rem;">🌟 Our Mission</div>
+            <p style="color: #64748b;">To empower individuals with skills, knowledge, and opportunities that transform their future.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 `;
@@ -1238,12 +1512,11 @@ const Footer = () => `
         <ul class="footer-links">
           <li><a>Contact Us</a></li>
           <li><a>Disclaimer</a></li>
-          <li><a>Privacy Policy</a></li>
+          <li><a data-route="privacy-policy" style="cursor: pointer;">Privacy Policy</a></li>
           <li><a>Refund Policy</a></li>
           <li><a>Terms & Conditions</a></li>
         </ul>
       </div>
-      
       <div class="footer-col">
         <h3>Get In Touch</h3>
         <p class="footer-description" style="margin-top: 0;">We are always open to questions and feedback</p>
@@ -1264,6 +1537,7 @@ const Footer = () => `
     
     <div class="footer-bottom">
       <div>Copyright © 2026 SkillFutures. All rights reserved.</div>
+      <div data-route="admin-dashboard" style="color: #ef4444; font-weight: 800; cursor: pointer; font-size: 0.75rem; letter-spacing: 1px; margin-left: 1rem;">[ ADMIN PANEL ]</div>
     </div>
   </footer>
 `;
@@ -1273,97 +1547,88 @@ const Footer = () => `
 const render = () => {
   const app = document.querySelector('#app');
   if (AppState.user) {
-    app.innerHTML = `
-      ${WelcomeModal()}
-      ${AdminModal()}
-      <div class="dashboard-container ${!AppState.isSidebarVisible ? 'sidebar-hidden' : ''}">
-        ${Sidebar()}
-        <div id="main-view" style="flex-grow: 1; overflow-y: auto;">
-          ${AppState.view === 'dashboard' ? DashboardView() : ''}
-          ${AppState.view === 'courses' ? CourseListView() : ''}
-          ${AppState.view === 'affiliate-link' ? AffiliateLinkView() : ''}
-          ${AppState.view === 'leaderboard' ? LeaderboardView() : ''}
-          ${AppState.view === 'team' ? TeamView() : ''}
-          ${AppState.view === 'wallet' ? WalletRequestView() : ''}
-          ${AppState.view === 'profile' ? ProfileView() : ''}
-          ${AppState.view === 'admin-dashboard' ? AdminDashboardView() : ''}
-          ${AppState.view === 'admin-users' ? AdminUsersView() : ''}
-          ${AppState.view === 'admin-courses' ? AdminCoursesView() : ''}
-          ${AppState.view === 'admin-payouts' ? AdminPayoutsView() : ''}
-          ${AppState.view === 'admin-notices' ? AdminNoticesView() : ''}
-          ${AppState.view === 'training' ? (() => {
-            const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || AppState.courses[0] || {};
-            const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
-            const completed = enrollment.completedLessons || [];
-            
-            return `
-              <section class="main-content animate-fade">
-                <h1 style="margin-bottom: 0.5rem;">${course.title || 'Course Training'}</h1>
-                <p style="color: #64748b; margin-bottom: 2rem;">Master your skills with ${course.title}</p>
-                
-                <div class="metrics-grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
-                  <div class="chart-container" style="padding: 0; overflow: hidden; background: black; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-                    <div style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #1e1b4b;">
-                      <i class="fas fa-play-circle" style="font-size: 5rem; color: #4338ca; cursor: pointer;"></i>
-                    </div>
-                  </div>
-                  <div class="chart-container" style="overflow-y: auto; max-height: 500px; display: flex; flex-direction: column;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                      <h3 style="margin: 0;">Course Modules</h3>
-                      <span style="font-size: 0.8rem; font-weight: 700; color: #16a34a;">${enrollment.progress || 0}% Complete</span>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                      ${Array.from({ length: course.totalLessons || 5 }).map((_, i) => {
-                        const lessonId = `L${i+1}`;
-                        const isDone = completed.includes(lessonId);
-                        return `
-                          <div class="training-module ${isDone ? 'completed' : ''}" 
-                               onclick="window.updateProgress('${course.id}', '${lessonId}')"
-                               style="padding: 1.2rem; background: ${isDone ? '#f0fdf4' : 'white'}; border-radius: 12px; border: 1px solid ${isDone ? '#bcf0da' : '#f1f5f9'}; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s;">
-                            <div style="width: 24px; height: 24px; border-radius: 50%; background: ${isDone ? '#22c55e' : '#f1f5f9'}; display: flex; align-items: center; justify-content: center; color: ${isDone ? 'white' : '#94a3b8'};">
-                              ${isDone ? '<i class="fas fa-check" style="font-size: 0.7rem;"></i>' : i+1}
-                            </div>
-                            <span style="font-weight: 600; color: ${isDone ? '#166534' : '#1e293b'}; flex-grow: 1;">Lesson ${i+1}: Module Title</span>
-                            ${!isDone ? '<i class="fas fa-play" style="font-size: 0.8rem; color: #4338ca;"></i>' : ''}
-                          </div>
-                        `;
-                      }).join('')}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            `;
-          })() : ''}
-          ${AppState.view === 'webinars' ? `
+    const isAdminView = AppState.view.startsWith('admin-') && AppState.isAdmin;
+    
+    // Fallback if trying to access admin view without permission
+    if (AppState.view.startsWith('admin-') && !AppState.isAdmin) {
+      AppState.view = 'dashboard';
+      render();
+      return;
+    }
+
+    // Determine current view content
+    let content = '';
+    switch(AppState.view) {
+      case 'dashboard': content = DashboardView(); break;
+      case 'courses': content = CourseListView(); break;
+      case 'affiliate-link': content = AffiliateLinkView(); break;
+      case 'leaderboard': content = LeaderboardView(); break;
+      case 'team': content = TeamView(); break;
+      case 'wallet': content = WalletRequestView(); break;
+      case 'profile': content = ProfileView(); break;
+      case 'privacy-policy': content = PrivacyPolicyView(); break;
+      case 'admin-dashboard': content = AdminDashboardView(); break;
+      case 'admin-users': content = AdminUsersView(); break;
+      case 'admin-courses': content = AdminCoursesView(); break;
+      case 'admin-payouts': content = AdminPayoutsView(); break;
+      case 'admin-notices': content = AdminNoticesView(); break;
+      case 'admin-settings': content = AdminSettingsView(); break;
+      case 'training': content = (() => {
+          const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || AppState.courses[0] || {};
+          const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
+          const completed = enrollment.completedLessons || [];
+          return `
             <section class="main-content animate-fade">
-              <h1 style="margin-bottom: 2rem;">Live Webinars</h1>
-              <div class="metrics-grid">
-                <div class="chart-container" style="background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); color: white; border: none;">
-                  <div style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1rem;">Next Session</div>
-                  <h2>Strategic Scaling & Passive Income</h2>
-                  <p style="margin: 1rem 0; opacity: 0.9;">Join us this Sunday for an exclusive session with top earners.</p>
-                  <div style="display: flex; gap: 20px; font-weight: 700;">
-                    <div>24h : 12m : 44s</div>
+              <h1 style="margin-bottom: 0.5rem;">${course.title || 'Course Training'}</h1>
+              <p style="color: #64748b; margin-bottom: 2rem;">Master your skills with ${course.title}</p>
+              <div class="metrics-grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div class="chart-container" style="padding: 0; overflow: hidden; background: black; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+                  <div style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #1e1b4b;">
+                    <i class="fas fa-play-circle" style="font-size: 5rem; color: #4338ca; cursor: pointer;"></i>
                   </div>
-                  <button class="btn" style="background: white; color: #4338ca; margin-top: 2rem; width: 100%;">Set Reminder</button>
                 </div>
-                <div class="chart-container">
-                  <h3>Recent Recordings</h3>
-                  <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-                      <span>Sales Psychology 101</span>
-                      <i class="fas fa-play-circle" style="color: #4338ca; font-size: 1.2rem;"></i>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-                      <span>Lead Magnet Optimization</span>
-                      <i class="fas fa-play-circle" style="color: #4338ca; font-size: 1.2rem;"></i>
-                    </div>
+                <div class="chart-container" style="overflow-y: auto; max-height: 500px; display: flex; flex-direction: column;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0;">Course Modules</h3>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #16a34a;">${enrollment.progress || 0}% Complete</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 12px;">
+                    ${Array.from({ length: course.totalLessons || 5 }).map((_, i) => {
+                      const lessonId = `L${i+1}`;
+                      const isDone = completed.includes(lessonId);
+                      return `
+                        <div class="training-module ${isDone ? 'completed' : ''}" 
+                             onclick="window.updateProgress('${course.id}', '${lessonId}')"
+                             style="padding: 1.2rem; background: ${isDone ? '#f0fdf4' : 'white'}; border-radius: 12px; border: 1px solid ${isDone ? '#bcf0da' : '#f1f5f9'}; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s;">
+                          <div style="width: 24px; height: 24px; border-radius: 50%; background: ${isDone ? '#22c55e' : '#f1f5f9'}; display: flex; align-items: center; justify-content: center; color: ${isDone ? 'white' : '#94a3b8'};">
+                            ${isDone ? '<i class="fas fa-check" style="font-size: 0.7rem;"></i>' : i+1}
+                          </div>
+                          <span style="font-weight: 600; color: ${isDone ? '#166534' : '#1e293b'}; flex-grow: 1;">Lesson ${i+1}: Module Title</span>
+                          ${!isDone ? '<i class="fas fa-play" style="font-size: 0.8rem; color: #4338ca;"></i>' : ''}
+                        </div>`;
+                    }).join('')}
                   </div>
                 </div>
               </div>
-            </section>
-          ` : ''}
-          ${['upgrade', 'reports', 'offers', 'earning-target', 'create-account'].includes(AppState.view) ? `
+            </section>`;
+        })(); break;
+      case 'webinars': content = `
+          <section class="main-content animate-fade">
+            <h1 style="margin-bottom: 2rem;">Live Webinars</h1>
+            <div class="metrics-grid">
+              <div class="chart-container" style="background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); color: white; border: none;">
+                <div style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1rem;">Next Session</div>
+                <h2>Strategic Scaling & Passive Income</h2>
+                <p style="margin: 1rem 0; opacity: 0.9;">Join us this Sunday for an exclusive session with top earners.</p>
+                <div style="display: flex; gap: 20px; font-weight: 700;"><div>24h : 12m : 44s</div></div>
+                <button class="btn" style="background: white; color: #4338ca; margin-top: 2rem; width: 100%;">Set Reminder</button>
+              </div>
+              <div class="chart-container"><h3>Recent Recordings</h3></div>
+            </div>
+          </section>`; break;
+      default:
+        if (['upgrade', 'reports', 'offers', 'earning-target', 'create-account'].includes(AppState.view)) {
+          content = `
             <section class="main-content animate-fade-up">
               <h1>${AppState.view.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}</h1>
               <div class="chart-container" style="text-align: center; padding: 5rem;">
@@ -1371,43 +1636,51 @@ const render = () => {
                 <h2>Section Under Development</h2>
                 <p style="color: #64748b;">We are working hard to bring this feature to your dashboard very soon!</p>
               </div>
-            </section>
-          ` : ''}
-          ${Footer()}
+            </section>`;
+        } else {
+          content = DashboardView();
+        }
+    }
+
+    if (isAdminView) {
+      app.innerHTML = `
+        ${AdminModal ? AdminModal() : ''}
+        ${AdminLayout(content)}
+      `;
+    } else {
+      app.innerHTML = `
+        ${WelcomeModal ? WelcomeModal() : ''}
+        <div class="dashboard-container ${!AppState.isSidebarVisible ? 'sidebar-hidden' : ''}">
+          ${Sidebar()}
+          <div id="main-view" style="flex-grow: 1; overflow-y: auto;">
+            ${content}
+            ${Footer()}
+          </div>
         </div>
-      </div>
-    `;
-    
+      `;
+    }
+
     if (AppState.view === 'leaderboard' && AppState.leaderboard.length === 0 && !AppState.loading.leaderboard) fetchLeaderboard();
     if (AppState.view === 'team' && AppState.team.length === 0 && !AppState.loading.team) fetchTeam();
     if (AppState.view === 'courses' && AppState.courses.length === 0 && !AppState.loading.courses) {
       fetchCourses();
       fetchUserCourses();
     }
-    if (AppState.isAdmin) {
-      if (['admin-dashboard', 'admin-users'].includes(AppState.view) && AppState.allUsers.length === 0) fetchAdminUsers();
-      if (['admin-dashboard', 'admin-payouts'].includes(AppState.view) && AppState.allPayouts.length === 0) fetchAdminPayouts();
-      if (['admin-dashboard', 'admin-notices'].includes(AppState.view) && AppState.allNotices.length === 0) fetchAdminNotices();
-      if (AppState.courses.length === 0) fetchCourses();
-    }
+    if (AppState.view === 'admin-users' && AppState.allUsers.length === 0) fetchAdminUsers();
+    if (AppState.view === 'admin-payouts' && AppState.allPayouts.length === 0) fetchAdminPayouts();
+    if (AppState.view === 'admin-settings') fetchAdminSettings();
   } else {
-    app.innerHTML = `<header style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border);">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="/logo.png" alt="Logo" style="height: 35px;"/>
-        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent);">SkillFutures</div>
-      </div>
-      <nav>${AppState.view === 'home' ? `<button class="btn btn-primary" data-route="signup">Join Now</button><button class="btn btn-outline" data-route="login" style="margin-left:1rem;">Login</button>` : ''}</nav>
-    </header>
-    <main>${AppState.view === 'home' ? HomeView() : (AppState.view === 'login' ? AuthView('login') : AuthView('signup'))}</main>
-    ${Footer()}`;
-    
-    if (AppState.view === 'signup') {
-      const p = getQueryParams();
-      if (p.ref) {
-        const input = document.querySelector('#signupReferral');
-        if (input) input.value = p.ref;
-      }
-    }
+    app.innerHTML = `
+      <header style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="/logo.png" alt="Logo" style="height: 35px;"/>
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent);">SkillFutures</div>
+        </div>
+        <nav>${AppState.view === 'home' ? `<button class="btn btn-primary" data-route="signup">Join Now</button><button class="btn btn-outline" data-route="login" style="margin-left:1rem;">Login</button>` : ''}</nav>
+      </header>
+      <main>${AppState.view === 'home' ? HomeView() : (AppState.view === 'privacy-policy' ? PrivacyPolicyView() : (AppState.view === 'login' ? AuthView('login') : AuthView('signup')))}</main>
+      ${Footer()}
+    `;
   }
   attachEvents();
 };
@@ -1471,10 +1744,10 @@ const attachEvents = () => {
         if (referrerUid) {
           // Direct Commission (₹400)
           await updateDoc(doc(db, 'users', referrerUid), {
-            todayEarnings: increment(400),
-            weeklyEarnings: increment(400),
-            monthlyEarnings: increment(400),
-            allTimeEarnings: increment(400)
+            todayEarnings: increment(AppState.commissionSettings.direct),
+            weeklyEarnings: increment(AppState.commissionSettings.direct),
+            monthlyEarnings: increment(AppState.commissionSettings.direct),
+            allTimeEarnings: increment(AppState.commissionSettings.direct)
           });
 
           // Passive Commission (Next Level) - Lookup referrer's referrer
@@ -1482,8 +1755,8 @@ const attachEvents = () => {
           if (referrerDoc.exists() && referrerDoc.data().referrerId) {
             const indirectId = referrerDoc.data().referrerId;
             await updateDoc(doc(db, 'users', indirectId), {
-              passiveEarnings: increment(100),
-              allTimeEarnings: increment(100)
+              passiveEarnings: increment(AppState.commissionSettings.passive),
+              allTimeEarnings: increment(AppState.commissionSettings.passive)
             });
           }
         }
@@ -1601,6 +1874,35 @@ const attachEvents = () => {
 
   window.updatePayoutStatus = updatePayoutStatus;
   window.deleteCourse = deleteCourse;
+
+  window.showUserEditModal = (userId) => {
+    const data = AppState.allUsers.find(u => u.id === userId);
+    AppState.adminModal = { type: 'user-edit', data };
+    render();
+    const form = document.querySelector('#adminUserEditForm');
+    if (form) {
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        saveUser(userId, {
+          name: document.querySelector('#editUserName').value,
+          role: document.querySelector('#editUserRole').value,
+          allTimeEarnings: Number(document.querySelector('#editUserEarnings').value),
+          paidEarnings: Number(document.querySelector('#editUserPaid').value)
+        });
+      };
+    }
+  };
+
+  const settingsForm = document.querySelector('#adminSettingsForm');
+  if (settingsForm) {
+    settingsForm.onsubmit = (e) => {
+      e.preventDefault();
+      saveAdminSettings({
+        direct: Number(document.querySelector('#directComm').value),
+        passive: Number(document.querySelector('#passiveComm').value)
+      });
+    };
+  }
   
   window.showNoticeModal = () => {
     AppState.adminModal = { type: 'notice', data: null };
