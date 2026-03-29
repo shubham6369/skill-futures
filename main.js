@@ -1588,6 +1588,68 @@ const RefundPolicyView = () => `
   </section>
 `;
 
+const DisclaimerView = () => `
+  <section class="main-content animate-fade">
+    <div style="max-width: 900px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 4rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Website Disclaimer ⚖️</h1>
+        <p style="color: #64748b; font-size: 1.1rem;">Important information regarding our services and your success journey.</p>
+      </div>
+
+      <div class="chart-container" style="padding: 3rem; line-height: 1.8;">
+        <div style="background: rgba(99, 102, 241, 0.05); padding: 2rem; border-radius: 15px; border-left: 4px solid #6366f1; margin-bottom: 3rem;">
+          <h2 style="margin-top: 0; color: #4338ca;">Welcome to Skill Futures 🚀</h2>
+          <p>We are glad to have you here. At Skill Futures, our mission is to guide you with the right knowledge, practical skills, and continuous support so you can grow and achieve your personal and professional goals with confidence.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 2.5rem;">
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">1. Educational Purposes Only</h3>
+            <p style="color: #475569;">All information, courses, and services provided on this website are intended for educational and informational purposes only. Our goal is to provide you with the right direction and essential skills to achieve your goals effectively.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">2. Results May Vary</h3>
+            <p style="color: #475569;">Any examples related to earnings, digital marketing, or affiliate marketing shared on our platform are for educational and motivational purposes only. Actual results depend on individual effort, learning ability, consistency, and implementation.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">3. Personal Responsibility</h3>
+            <p style="color: #475569;">Any decisions or actions you take based on the information provided on this platform involve your active participation and responsibility. We encourage you to make informed and thoughtful decisions.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">4. Our Commitment</h3>
+            <p style="color: #475569;">At Skill Futures, we are committed to providing you with the right guidance and continuous support. Our team and founder sincerely work towards helping you grow and move forward confidently towards your goals.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">5. Safe Learning Environment</h3>
+            <p style="color: #475569;">Our objective is to create a positive, safe, and supportive learning environment for everyone. Your trust is extremely important to us, and we are committed to maintaining it with honesty and dedication.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">Need Help?</h3>
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+              <p style="margin-bottom: 1rem; color: #475569;">For any information or support, our team is here to assist you:</p>
+              <div style="display: flex; flex-direction: column; gap: 0.8rem; font-weight: 600;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <i class="fas fa-envelope" style="color: #6366f1;"></i>
+                  <span>skillfuturessupport@gmail.com</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <i class="fab fa-whatsapp" style="color: #25d366;"></i>
+                  <span>8923938520</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+`;
+
 const HomeView = () => `
   <div class="hero">
     <img src="/logo.png" alt="SkillFutures Logo" style="height: 80px; margin-bottom: 2rem;">
@@ -1689,7 +1751,7 @@ const Footer = () => `
         <h3>Quick Links</h3>
         <ul class="footer-links">
           <li><a>Contact Us</a></li>
-          <li><a>Disclaimer</a></li>
+          <li><a data-route="disclaimer" style="cursor: pointer;">Disclaimer</a></li>
           <li><a data-route="privacy-policy" style="cursor: pointer;">Privacy Policy</a></li>
           <li><a data-route="refund-policy" style="cursor: pointer;">Refund Policy</a></li>
           <li><a>Terms & Conditions</a></li>
@@ -1748,6 +1810,7 @@ const render = () => {
       case 'profile': content = ProfileView(); break;
       case 'privacy-policy': content = PrivacyPolicyView(); break;
       case 'refund-policy': content = RefundPolicyView(); break;
+      case 'disclaimer': content = DisclaimerView(); break;
       case 'admin-dashboard': content = AdminDashboardView(); break;
       case 'admin-users': content = AdminUsersView(); break;
       case 'admin-courses': content = AdminCoursesView(); break;
@@ -1869,6 +1932,7 @@ const render = () => {
         AppState.view === 'home' ? HomeView() : 
         AppState.view === 'privacy-policy' ? PrivacyPolicyView() : 
         AppState.view === 'refund-policy' ? RefundPolicyView() :
+        AppState.view === 'disclaimer' ? DisclaimerView() :
         AppState.view === 'login' ? AuthView('login') : AuthView('signup')
       }</main>
       ${Footer()}
