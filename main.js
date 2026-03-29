@@ -1002,6 +1002,9 @@ const AdminSettingsView = () => {
 
 const AdminSidebar = () => `
   <div class="mobile-overlay ${AppState.isSidebarVisible ? 'active' : ''}" id="adminMobileOverlay"></div>
+  <button id="sidebarToggle" class="sidebar-toggle-btn floating-toggle" style="color: #94a3b8; border-color: #1e293b; background: #0f172a; ${AppState.isSidebarVisible ? 'display: none;' : ''}">
+    <i class="fas fa-bars"></i>
+  </button>
   <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''} ${AppState.isSidebarVisible ? 'mobile-active' : ''}" style="background: #0f172a; border-right: 1px solid #1e293b;">
     <div class="sidebar-logo" style="border-bottom: 1px solid #1e293b;">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
@@ -1011,8 +1014,8 @@ const AdminSidebar = () => `
         </div>
         <div style="font-size: 0.6rem; color: #94a3b8; font-weight: 600; padding-left: 40px; margin-top: -4px;">"Platform Control Center"</div>
       </div>
-      <button id="sidebarToggle" class="sidebar-toggle-btn" style="color: #94a3b8; border-color: #1e293b;">
-        <i class="fas fa-bars"></i>
+      <button id="sidebarToggleClose" class="sidebar-toggle-btn">
+        <i class="fas fa-times"></i>
       </button>
     </div>
     
@@ -1060,6 +1063,9 @@ const AdminSidebar = () => `
 
 const Sidebar = () => `
   <div class="mobile-overlay ${AppState.isSidebarVisible ? 'active' : ''}" id="mobileOverlay"></div>
+  <button id="sidebarToggle" class="sidebar-toggle-btn floating-toggle" style="${AppState.isSidebarVisible ? 'display: none;' : ''}">
+    <i class="fas fa-bars"></i>
+  </button>
   <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''} ${AppState.isSidebarVisible ? 'mobile-active' : ''}">
     <div class="sidebar-logo">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
@@ -1069,8 +1075,8 @@ const Sidebar = () => `
         </div>
         <div style="font-size: 0.6rem; color: #64748b; font-weight: 600; padding-left: 40px; margin-top: -4px;">"Crafting Careers, Creating Incomes."</div>
       </div>
-      <button id="sidebarToggle" class="sidebar-toggle-btn">
-        <i class="fas fa-bars"></i>
+      <button id="sidebarToggleClose" class="sidebar-toggle-btn">
+        <i class="fas fa-times"></i>
       </button>
     </div>
     <ul class="sidebar-nav">
@@ -1819,6 +1825,14 @@ const attachEvents = () => {
   if (sidebarToggle) {
     sidebarToggle.onclick = () => {
       AppState.isSidebarVisible = !AppState.isSidebarVisible;
+      render();
+    };
+  }
+
+  const sidebarToggleClose = document.querySelector('#sidebarToggleClose');
+  if (sidebarToggleClose) {
+    sidebarToggleClose.onclick = () => {
+      AppState.isSidebarVisible = false;
       render();
     };
   }
