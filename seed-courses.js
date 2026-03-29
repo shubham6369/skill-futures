@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBSCNq6CfGbzb5ZZh1jZEQ8B0ULFA40A-g",
-  authDomain: "skillbazzar-f25a5.firebaseapp.com",
-  projectId: "skillbazzar-f25a5",
-  storageBucket: "skillbazzar-f25a5.firebasestorage.app",
-  messagingSenderId: "293298225357",
-  appId: "1:293298225357:web:a258a7d26c7fdc18de6984",
-  measurementId: "G-S3DF7M0NY5"
+  apiKey: "AIzaSyAit3eL37pTaeVW5O4uzaSWqcwjzNGOzfc",
+  authDomain: "skillfuture-9ce01.firebaseapp.com",
+  projectId: "skillfuture-9ce01",
+  storageBucket: "skillfuture-9ce01.firebasestorage.app",
+  messagingSenderId: "572586687847",
+  appId: "1:572586687847:web:da088da422ae058343c3c2",
+  measurementId: "G-Q5KCHHHXEE"
 };
 
 const app = initializeApp(firebaseConfig);

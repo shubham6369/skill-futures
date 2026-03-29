@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "skillfuture-9ce01"
+  },
   "targets": {},
   "etags": {}
 }
