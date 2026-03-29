@@ -55,7 +55,14 @@ const AppState = {
     courses: false,
     adminUsers: false,
     adminPayouts: false,
-    adminSettings: false
+    adminSettings: false,
+    adminNotices: false
+  },
+  fetched: {
+    adminUsers: false,
+    adminPayouts: false,
+    adminSettings: false,
+    adminNotices: false
   },
   commissionSettings: {
     direct: 400,
@@ -208,9 +215,14 @@ const requestPayout = async (amount, upi) => {
 const fetchAdminUsers = async () => {
   if (!AppState.isAdmin || AppState.loading.adminUsers) return;
   AppState.loading.adminUsers = true;
-  const q = query(collection(db, 'users'), orderBy('joinedAt', 'desc'));
-  const snap = await getDocs(q);
-  AppState.allUsers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    const q = query(collection(db, 'users'), orderBy('joinedAt', 'desc'));
+    const snap = await getDocs(q);
+    AppState.allUsers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    AppState.fetched.adminUsers = true;
+  } catch (err) {
+    console.error("Error fetching users:", err);
+  }
   AppState.loading.adminUsers = false;
   render();
 };
@@ -223,9 +235,9 @@ const fetchAdminSettings = async () => {
     if (sDoc.exists()) {
       AppState.commissionSettings = sDoc.data();
     } else {
-      // Initialize if missing
       await setDoc(doc(db, 'settings', 'commissions'), AppState.commissionSettings);
     }
+    AppState.fetched.adminSettings = true;
   } catch (err) {
     console.error("Error fetching settings:", err);
   }
@@ -259,9 +271,14 @@ const saveUser = async (id, updatedData) => {
 const fetchAdminPayouts = async () => {
   if (!AppState.isAdmin || AppState.loading.adminPayouts) return;
   AppState.loading.adminPayouts = true;
-  const q = query(collection(db, 'payoutRequests'), orderBy('createdAt', 'desc'));
-  const snap = await getDocs(q);
-  AppState.allPayouts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    const q = query(collection(db, 'payoutRequests'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    AppState.allPayouts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    AppState.fetched.adminPayouts = true;
+  } catch (err) {
+    console.error("Error fetching payouts:", err);
+  }
   AppState.loading.adminPayouts = false;
   render();
 };
@@ -314,9 +331,16 @@ const saveCourse = async (courseData) => {
 };
 
 const fetchAdminNotices = async () => {
-  if (!AppState.isAdmin) return;
-  const snap = await getDocs(collection(db, 'notices'));
-  AppState.allNotices = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  if (!AppState.isAdmin || AppState.loading.adminNotices) return;
+  AppState.loading.adminNotices = true;
+  try {
+    const snap = await getDocs(collection(db, 'notices'));
+    AppState.allNotices = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    AppState.fetched.adminNotices = true;
+  } catch (err) {
+    console.error("Error fetching notices:", err);
+  }
+  AppState.loading.adminNotices = false;
   render();
 };
 
@@ -723,10 +747,10 @@ const AdminUsersView = () => `
               <td>
                 <div style="display: flex; align-items: center; gap: 12px;">
                   <div style="width: 40px; height: 40px; border-radius: 10px; background: #eef2ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">
-                    ${user.name.substring(0, 2).toUpperCase()}
+                    ${(user.name || 'U').substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <div style="font-weight: 700; color: #0f172a;">${user.name}</div>
+                    <div style="font-weight: 700; color: #0f172a;">${user.name || 'Unnamed User'}</div>
                     <div style="font-size: 0.8rem; color: #64748b;">${user.email}</div>
                   </div>
                 </div>
@@ -1666,9 +1690,15 @@ const render = () => {
       fetchCourses();
       fetchUserCourses();
     }
-    if (AppState.view === 'admin-users' && AppState.allUsers.length === 0) fetchAdminUsers();
-    if (AppState.view === 'admin-payouts' && AppState.allPayouts.length === 0) fetchAdminPayouts();
-    if (AppState.view === 'admin-settings') fetchAdminSettings();
+    if (AppState.view === 'admin-dashboard') {
+      if (!AppState.fetched.adminUsers && !AppState.loading.adminUsers) fetchAdminUsers();
+      if (!AppState.fetched.adminPayouts && !AppState.loading.adminPayouts) fetchAdminPayouts();
+      if (!AppState.fetched.adminNotices && !AppState.loading.adminNotices) fetchAdminNotices();
+    }
+    if (AppState.view === 'admin-users' && !AppState.fetched.adminUsers && !AppState.loading.adminUsers) fetchAdminUsers();
+    if (AppState.view === 'admin-payouts' && !AppState.fetched.adminPayouts && !AppState.loading.adminPayouts) fetchAdminPayouts();
+    if (AppState.view === 'admin-notices' && !AppState.fetched.adminNotices && !AppState.loading.adminNotices) fetchAdminNotices();
+    if (AppState.view === 'admin-settings' && !AppState.fetched.adminSettings && !AppState.loading.adminSettings) fetchAdminSettings();
   } else {
     app.innerHTML = `
       <header style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border);">
