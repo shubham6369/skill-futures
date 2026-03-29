@@ -1650,6 +1650,62 @@ const DisclaimerView = () => `
   </section>
 `;
 
+const TermsView = () => `
+  <section class="main-content animate-fade">
+    <div style="max-width: 900px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 4rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Terms & Conditions 📜</h1>
+        <p style="color: #64748b; font-size: 1.1rem;">Please read these terms carefully before using our platform.</p>
+      </div>
+
+      <div class="chart-container" style="padding: 3rem; line-height: 1.8;">
+        <div style="background: rgba(14, 165, 233, 0.05); padding: 2rem; border-radius: 15px; border-left: 4px solid var(--accent); margin-bottom: 3rem;">
+          <h2 style="margin-top: 0; color: #0284c7;">Welcome to Skill Futures</h2>
+          <p>By accessing and using our platform, you agree to follow the guidelines mentioned below. Our platform is intended for educational and skill development purposes, providing you with the right knowledge, guidance, and support to help you grow effectively.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 2.5rem;">
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">1. Performance & Results</h3>
+            <p style="color: #475569;">Results achieved through our platform may vary from person to person, as they depend on individual effort, consistency, and implementation. We provide the tools, but your success is in your hands.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">2. User Conduct</h3>
+            <p style="color: #475569;">Users are expected to maintain respectful and positive behavior at all times. Any activity that negatively affects other users or the platform environment may lead to restricted or removed access.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">3. Commitment & Responsibility</h3>
+            <p style="color: #475569;">Skill Futures promotes transparency and responsibility. If any user is involved in commitments related to services, it is expected that they act honestly and deliver as promised.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">4. Intellectual Property</h3>
+            <p style="color: #475569;">All content available on this platform, including text, videos, and materials, belongs to Skill Futures. Unauthorized use, copying, or distribution is strictly prohibited.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">5. Service Improvements</h3>
+            <p style="color: #475569;">Skill Futures may update or improve its services, content, or policies at any time to enhance the user experience and maintain the highest quality of education.</p>
+          </article>
+
+          <article>
+            <h3 style="color: #0f172a; margin-bottom: 0.75rem;">Need Help?</h3>
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+              <p style="margin-bottom: 0.5rem; color: #475569;">If you have any questions, reach out to us:</p>
+              <div style="display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                <i class="fas fa-envelope" style="color: var(--accent);"></i>
+                <span>skillfuturessupport@gmail.com</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+`;
+
 const HomeView = () => `
   <div class="hero">
     <img src="/logo.png" alt="SkillFutures Logo" style="height: 80px; margin-bottom: 2rem;">
@@ -1754,7 +1810,7 @@ const Footer = () => `
           <li><a data-route="disclaimer" style="cursor: pointer;">Disclaimer</a></li>
           <li><a data-route="privacy-policy" style="cursor: pointer;">Privacy Policy</a></li>
           <li><a data-route="refund-policy" style="cursor: pointer;">Refund Policy</a></li>
-          <li><a>Terms & Conditions</a></li>
+          <li><a data-route="terms" style="cursor: pointer;">Terms & Conditions</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -1811,6 +1867,7 @@ const render = () => {
       case 'privacy-policy': content = PrivacyPolicyView(); break;
       case 'refund-policy': content = RefundPolicyView(); break;
       case 'disclaimer': content = DisclaimerView(); break;
+      case 'terms': content = TermsView(); break;
       case 'admin-dashboard': content = AdminDashboardView(); break;
       case 'admin-users': content = AdminUsersView(); break;
       case 'admin-courses': content = AdminCoursesView(); break;
@@ -1933,6 +1990,7 @@ const render = () => {
         AppState.view === 'privacy-policy' ? PrivacyPolicyView() : 
         AppState.view === 'refund-policy' ? RefundPolicyView() :
         AppState.view === 'disclaimer' ? DisclaimerView() :
+        AppState.view === 'terms' ? TermsView() :
         AppState.view === 'login' ? AuthView('login') : AuthView('signup')
       }</main>
       ${Footer()}
