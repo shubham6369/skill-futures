@@ -1200,7 +1200,7 @@ const DashboardView = () => {
 
       <div class="chart-container">
         <h3 style="margin-bottom: 2rem;">7 Days Sales Graph</h3>
-        <div style="height: 300px; display: flex; align-items: flex-end; gap: 10%; padding: 0 2rem; border-bottom: 1px solid var(--card-border);">
+        <div style="height: 300px; display: flex; align-items: flex-end; gap: clamp(10px, 5vw, 2rem); padding: 0 1rem; border-bottom: 1px solid var(--card-border);">
           <div style="flex: 1; height: 10%; background: var(--accent); border-radius: 4px 4px 0 0;"></div>
           <div style="flex: 1; height: 15%; background: var(--accent); border-radius: 4px 4px 0 0;"></div>
           <div style="flex: 1; height: 5%; background: var(--accent); border-radius: 4px 4px 0 0;"></div>
@@ -1683,7 +1683,7 @@ const render = () => {
             <section class="main-content animate-fade">
               <h1 style="margin-bottom: 0.5rem;">${course.title || 'Course Training'}</h1>
               <p style="color: #64748b; margin-bottom: 2rem;">Master your skills with ${course.title}</p>
-              <div class="metrics-grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
+              <div class="metrics-grid training-player-grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
                 <div class="chart-container" style="padding: 0; overflow: hidden; background: black; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
                   <div style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #1e1b4b;">
                     <i class="fas fa-play-circle" style="font-size: 5rem; color: #4338ca; cursor: pointer;"></i>
