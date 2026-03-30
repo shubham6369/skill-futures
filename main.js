@@ -1184,10 +1184,10 @@ const Sidebar = () => `
   <aside class="sidebar ${!AppState.isSidebarVisible ? 'collapsed' : ''} ${AppState.isSidebarVisible ? 'mobile-active' : ''}">
     <div class="sidebar-logo">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="/logo.png" alt="Logo" style="height: 32px; flex-shrink: 0;"/>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="/logo.png" alt="Logo" style="height: 60px; flex-shrink: 0;"/>
         </div>
-        <div style="font-size: 0.6rem; color: #64748b; font-weight: 600; padding-left: 0px; margin-top: 4px;">"Crafting Careers, Creating Incomes."</div>
+        <div style="font-size: 0.65rem; color: #64748b; font-weight: 600; padding-left: 0px; margin-top: 6px;">"Crafting Careers, Creating Incomes."</div>
       </div>
       <button id="sidebarToggleClose" class="sidebar-toggle-btn">
         <i class="fas fa-times"></i>
