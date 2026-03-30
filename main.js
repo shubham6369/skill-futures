@@ -59,6 +59,7 @@ const AppState = {
   allUsers: [],
   allPayouts: [],
   allNotices: [],
+  userPayouts: [],
   selectedCourseId: null,
   uploadingProfile: false,
   showWelcomeModal: false,
@@ -69,12 +70,14 @@ const AppState = {
     leaderboard: false,
     team: false,
     courses: false,
+    userPayouts: false,
     adminUsers: false,
     adminPayouts: false,
     adminSettings: false,
     adminNotices: false
   },
   fetched: {
+    userPayouts: false,
     adminUsers: false,
     adminPayouts: false,
     adminSettings: false,
@@ -247,22 +250,54 @@ const updateProgress = async (courseId, lessonId) => {
   }
 };
 
-const requestPayout = async (amount, upi) => {
-  const available = (AppState.userData.allTimeEarnings - AppState.userData.paidEarnings);
-  if (amount > available) return alert("Insufficient balance!");
-  
-  await addDoc(collection(db, 'payoutRequests'), {
-    userId: AppState.user.uid,
-    userName: AppState.userData.name,
-    amount: amount,
-    upi: upi,
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  });
-  
-  alert("Payout request submitted successfully!");
-  AppState.view = 'dashboard';
+const fetchUserPayouts = async () => {
+  if (!AppState.user || AppState.loading.userPayouts) return;
+  AppState.loading.userPayouts = true;
+  try {
+    const q = query(
+      collection(db, 'payoutRequests'),
+      where('userId', '==', AppState.user.uid),
+      orderBy('createdAt', 'desc')
+    );
+    const snap = await getDocs(q);
+    AppState.userPayouts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    AppState.fetched.userPayouts = true;
+  } catch (err) {
+    console.error("Error fetching user payouts:", err);
+  }
+  AppState.loading.userPayouts = false;
   render();
+};
+
+const requestPayout = async (amount, upi) => {
+  const m = AppState.userData;
+  const available = (m.allTimeEarnings || 0) - (m.paidEarnings || 0);
+  if (amount <= 0) return alert("Please enter a valid amount.");
+  if (amount < 100) return alert("Minimum withdrawal amount is \u20b9100.");
+  if (amount > available) return alert("Insufficient balance! You only have \u20b9" + available + " available.");
+  if (!upi || upi.trim().length < 3) return alert("Please enter valid UPI ID or bank details.");
+
+  // Check for pending requests
+  const pending = AppState.userPayouts.find(p => p.status === 'pending');
+  if (pending) return alert("You already have a pending withdrawal request. Please wait for it to be processed.");
+  
+  try {
+    await addDoc(collection(db, 'payoutRequests'), {
+      userId: AppState.user.uid,
+      userName: AppState.userData.name,
+      userEmail: AppState.user.email,
+      amount: amount,
+      upi: upi.trim(),
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    
+    alert("\u2705 Withdrawal request of \u20b9" + amount + " submitted successfully! You will be notified once it is processed.");
+    AppState.fetched.userPayouts = false;
+    await fetchUserPayouts();
+  } catch (err) {
+    alert("Error submitting request: " + err.message);
+  }
 };
 
 const signInWithGoogle = async () => {
@@ -1389,37 +1424,132 @@ const TeamView = () => `
 
 const WalletRequestView = () => {
   const m = AppState.userData || {};
-  const balance = (m.allTimeEarnings || 0) - (m.paidEarnings || 0);
+  const totalEarned = m.allTimeEarnings || 0;
+  const totalWithdrawn = m.paidEarnings || 0;
+  const pendingAmount = AppState.userPayouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + (p.amount || 0), 0);
+  const available = totalEarned - totalWithdrawn;
+  const hasPending = AppState.userPayouts.some(p => p.status === 'pending');
+
   return `
-    <section class="main-content">
-      <h1 style="margin-bottom: 3rem;">Wallet Request</h1>
-      <div class="metrics-grid" style="grid-template-columns: 1fr;">
-        <div class="metric-card card-industry" style="height: 150px;">
+    <section class="main-content animate-fade">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="margin-bottom: 0.25rem;">Wallet & Withdrawals</h1>
+          <p style="color: #64748b; font-size: 0.9rem;">Manage your earnings and request payouts</p>
+        </div>
+        ${hasPending ? '<div style="background: #fef3c7; color: #92400e; padding: 8px 18px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; border: 1px solid #fde68a;"><i class="fas fa-clock"></i> Pending Request Active</div>' : ''}
+      </div>
+
+      <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <div class="metric-card animate-fade-up stagger-1" style="background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); border: none;">
           <div class="metric-info">
-            <h3>₹ ${balance} /-</h3>
-            <span>Available for Withdrawal</span>
+            <h3 style="color: white; font-size: 1.8rem;">&#8377;${totalEarned.toLocaleString()}</h3>
+            <span style="color: rgba(255,255,255,0.8); font-weight: 600;">Total Earned</span>
           </div>
-          <div class="metric-icon">💰</div>
+          <div class="metric-icon" style="color: rgba(255,255,255,0.3); font-size: 2.5rem;"><i class="fas fa-coins"></i></div>
+        </div>
+        <div class="metric-card animate-fade-up stagger-2" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
+          <div class="metric-info">
+            <h3 style="color: white; font-size: 1.8rem;">&#8377;${available.toLocaleString()}</h3>
+            <span style="color: rgba(255,255,255,0.8); font-weight: 600;">Available Balance</span>
+          </div>
+          <div class="metric-icon" style="color: rgba(255,255,255,0.3); font-size: 2.5rem;"><i class="fas fa-wallet"></i></div>
+        </div>
+        <div class="metric-card animate-fade-up stagger-3" style="background: linear-gradient(135deg, #dc2626 0%, #f87171 100%); border: none;">
+          <div class="metric-info">
+            <h3 style="color: white; font-size: 1.8rem;">&#8377;${totalWithdrawn.toLocaleString()}</h3>
+            <span style="color: rgba(255,255,255,0.8); font-weight: 600;">Total Withdrawn</span>
+          </div>
+          <div class="metric-icon" style="color: rgba(255,255,255,0.3); font-size: 2.5rem;"><i class="fas fa-arrow-up-from-bracket"></i></div>
         </div>
       </div>
-      
-      <div class="chart-container">
-        <h3>Submit Payout Request</h3>
-        <form id="payoutForm" style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
-          <div>
-            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim);">Withdrawal Amount (₹)</label>
-            <input type="number" id="payoutAmount" value="${balance}" max="${balance}" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white;"/>
+
+      <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; align-items: start;">
+        <div class="chart-container animate-fade-up stagger-4" style="position: sticky; top: 2rem;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #4338ca, #6366f1); display: flex; align-items: center; justify-content: center; color: white;"><i class="fas fa-paper-plane"></i></div>
+            <div>
+              <h3 style="margin: 0; font-size: 1.1rem;">Request Withdrawal</h3>
+              <p style="margin: 0; font-size: 0.75rem; color: #94a3b8;">Min. &#8377;100 | Processed within 24-48 hrs</p>
+            </div>
           </div>
-          <div>
-            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim);">UPI ID / Bank Details</label>
-            <textarea id="payoutUpi" required placeholder="example@upi or Bank: Name, A/C, IFSC" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white; height: 100px;"></textarea>
+          
+          ${hasPending ? `
+            <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 12px; padding: 1.25rem; text-align: center;">
+              <i class="fas fa-hourglass-half" style="font-size: 2rem; color: #f59e0b; margin-bottom: 0.75rem;"></i>
+              <p style="color: #92400e; font-weight: 600; font-size: 0.9rem; margin: 0;">You have a pending withdrawal of &#8377;${pendingAmount.toLocaleString()}. Please wait for it to be processed.</p>
+            </div>
+          ` : `
+            <form id="payoutForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1e293b; font-size: 0.85rem;">Withdrawal Amount</label>
+                <div style="position: relative;">
+                  <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 800; color: #4338ca; font-size: 1.1rem;">&#8377;</span>
+                  <input type="number" id="payoutAmount" value="${available}" min="100" max="${available}" required style="width: 100%; padding: 14px 14px 14px 36px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; color: #0f172a; font-size: 1.2rem; font-weight: 800; outline: none; transition: border 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'"/>
+                </div>
+                <p style="margin: 6px 0 0; font-size: 0.75rem; color: #94a3b8;">Available: &#8377;${available.toLocaleString()} | Min: &#8377;100</p>
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1e293b; font-size: 0.85rem;">UPI ID / Bank Details</label>
+                <textarea id="payoutUpi" required placeholder="yourname@upi or Bank: Name, A/C, IFSC" style="width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; color: #0f172a; height: 100px; resize: none; font-size: 0.9rem; outline: none; transition: border 0.2s; font-family: inherit;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; height: 50px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; background: linear-gradient(135deg, #4338ca, #6366f1); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(99,102,241,0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                <i class="fas fa-paper-plane"></i> Submit Withdrawal Request
+              </button>
+            </form>
+          `}
+        </div>
+
+        <div class="chart-container animate-fade-up stagger-5">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0;"><i class="fas fa-receipt" style="color: #6366f1; margin-right: 8px;"></i>Transaction History</h3>
+            <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">${AppState.userPayouts.length} transactions</span>
           </div>
-          <button type="submit" class="btn btn-primary">Submit Request</button>
-        </form>
+          ${AppState.loading.userPayouts ? `
+            <div style="text-align: center; padding: 3rem; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i><p style="margin-top: 1rem;">Loading transactions...</p></div>
+          ` : AppState.userPayouts.length === 0 ? `
+            <div style="text-align: center; padding: 3rem;">
+              <i class="fas fa-inbox" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 1rem;"></i>
+              <h4 style="color: #94a3b8; font-weight: 600;">No transactions yet</h4>
+              <p style="color: #cbd5e1; font-size: 0.85rem;">Your withdrawal requests will appear here</p>
+            </div>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 12px; max-height: 500px; overflow-y: auto;">
+              ${AppState.userPayouts.map((p, i) => {
+                const statusColors = {
+                  pending: { bg: '#fef3c7', text: '#92400e', icon: 'fa-clock' },
+                  approved: { bg: '#dcfce7', text: '#166534', icon: 'fa-check-circle' },
+                  rejected: { bg: '#fee2e2', text: '#991b1b', icon: 'fa-times-circle' }
+                };
+                const s = statusColors[p.status] || statusColors.pending;
+                return `
+                  <div style="padding: 1.25rem; background: #fafbfc; border-radius: 14px; border: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 1rem; transition: all 0.2s;" class="animate-fade stagger-${(i % 6) + 1}">
+                    <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                      <div style="width: 42px; height: 42px; border-radius: 12px; background: ${s.bg}; display: flex; align-items: center; justify-content: center; color: ${s.text}; flex-shrink: 0;">
+                        <i class="fas ${s.icon}"></i>
+                      </div>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 700; color: #0f172a; font-size: 1rem;">&#8377;${p.amount.toLocaleString()}</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.upi}</div>
+                      </div>
+                    </div>
+                    <div style="text-align: right; flex-shrink: 0;">
+                      <div style="background: ${s.bg}; color: ${s.text}; padding: 4px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas ${s.icon}" style="margin-right: 4px;"></i>${p.status}
+                      </div>
+                      <div style="font-size: 0.7rem; color: #cbd5e1; margin-top: 6px;">${new Date(p.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
       </div>
     </section>
   `;
 };
+
 
 const AffiliateLinkView = () => {
   const m = AppState.userData || {};
@@ -2166,6 +2296,7 @@ const render = () => {
       `;
     }
 
+    if (AppState.view === 'wallet' && !AppState.fetched.userPayouts && !AppState.loading.userPayouts) fetchUserPayouts();
     if (AppState.view === 'leaderboard' && AppState.leaderboard.length === 0 && !AppState.loading.leaderboard) fetchLeaderboard();
     if (AppState.view === 'team' && AppState.team.length === 0 && !AppState.loading.team) fetchTeam();
     if (AppState.view === 'courses' && AppState.courses.length === 0 && !AppState.loading.courses) {
