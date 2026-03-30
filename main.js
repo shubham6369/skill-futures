@@ -21,6 +21,18 @@ const getQueryParams = () => {
   return params;
 };
 
+// --- Capture Referral Logic ---
+const captureReferralLink = () => {
+  const { ref } = getQueryParams();
+  if (ref) {
+    sessionStorage.setItem('referralCode', ref.trim().toUpperCase());
+    // Remove ref from URL for clean state
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+};
+captureReferralLink();
+
 const copyToClipboard = (text) => {
   navigator.clipboard.writeText(text).then(() => {
     const toast = document.createElement('div');
@@ -68,7 +80,8 @@ const AppState = {
   },
   commissionSettings: {
     direct: 400,
-    passive: 100
+    passive: 100,
+    referralDiscount: 100
   },
   trainings: [
     { 
@@ -1000,6 +1013,15 @@ const AdminSettingsView = () => {
             <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px;">The indirect commission awarded to the sponsor of the referrer.</p>
           </div>
 
+          <div class="form-group">
+            <label style="font-weight: 700; color: #1e293b;">Referral Discount for New Users (₹)</label>
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 8px;">
+               <div style="background: rgba(245, 158, 11, 0.1); color: #b45309; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">₹</div>
+               <input type="number" id="referralDiscount" class="form-input-styled" value="${settings.referralDiscount || 100}" required style="font-size: 1.2rem; font-weight: 800;">
+            </div>
+            <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px;">The discount amount given to a new user if they join via a referral link.</p>
+          </div>
+
           <div style="margin-top: 1rem; padding-top: 2rem; border-top: 1px solid #f1f5f9;">
             <button type="submit" class="btn btn-save" style="width: 100%; height: 55px; border-radius: 15px; background: #0f172a; font-size: 1rem; letter-spacing: 0.5px;">
               <i class="fas fa-shield-check"></i> SYNC SYSTEM CONFIGURATION
@@ -1101,7 +1123,7 @@ const Sidebar = () => `
         <i class="fas fa-video"></i> Trainings
       </li>
       <li class="sidebar-item ${AppState.view === 'affiliate-link' ? 'active' : ''}" data-route="affiliate-link">
-        <i class="fas fa-link"></i> Affiliate Link
+        <i class="fas fa-link"></i> Refer & Earn
       </li>
       <li class="sidebar-item ${AppState.view === 'courses' ? 'active' : ''}" data-route="courses">
         <i class="fas fa-tablet-screen-button"></i> My Courses
@@ -1357,56 +1379,177 @@ const AffiliateLinkView = () => {
   const m = AppState.userData || {};
   const refCode = m.referralCode || 'FF-GUEST';
   const baseUrl = window.location.origin;
+  const directComm = AppState.commissionSettings.direct;
+  const passiveComm = AppState.commissionSettings.passive;
+  const friendDiscount = AppState.commissionSettings.referralDiscount;
   
   return `
-    <section class="main-content">
+    <section class="main-content animate-fade">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
-        <h1>Refer & Earn</h1>
-        <div style="background: rgba(74, 222, 128, 0.1); color: #4ade80; padding: 10px 20px; border-radius: 50px; border: 1px solid rgba(74, 222, 128, 0.2); font-weight: 600;">
-          Active Affiliate Account
+        <div>
+          <h1 style="margin-bottom: 0.5rem;">Refer & Earn 🚀</h1>
+          <p style="color: #64748b;">Invite friends and earn rewards as they grow.</p>
+        </div>
+        <div style="background: rgba(74, 222, 128, 0.1); color: #4ade80; padding: 12px 24px; border-radius: 50px; border: 1px solid rgba(74, 222, 128, 0.2); font-weight: 700; font-size: 0.9rem;">
+          <i class="fas fa-certificate" style="margin-right: 8px;"></i> Verified Affiliate Account
         </div>
       </div>
 
-      <div class="metrics-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 3rem;">
-        <div class="metric-card card-today">
+      <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem;">
+        <div class="metric-card" style="background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); border: none;">
           <div class="metric-info">
-            <h3>₹ 400 /-</h3>
-            <span>Direct Commission</span>
+            <h3 style="color: white; font-size: 1.8rem;">₹${directComm}</h3>
+            <span style="color: rgba(255,255,255,0.8); font-weight: 600;">Direct Earning</span>
           </div>
         </div>
-        <div class="metric-card card-passive">
+        <div class="metric-card" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
           <div class="metric-info">
-            <h3>₹ 100 /-</h3>
-            <span>Passive Commission</span>
+            <h3 style="color: white; font-size: 1.8rem;">₹${passiveComm}</h3>
+            <span style="color: rgba(255,255,255,0.8); font-weight: 600;">Passive Earning</span>
+          </div>
+        </div>
+        <div class="metric-card" style="background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); border: none;">
+          <div class="metric-info">
+            <h3 style="color: white; font-size: 1.8rem;">₹${friendDiscount}</h3>
+            <span style="color: rgba(255,255,255,0.8); font-weight: 600;">Friend's Discount</span>
           </div>
         </div>
       </div>
 
-      <div class="chart-container" style="margin-bottom: 2rem;">
-        <h3 style="margin-bottom: 1.5rem;">Your Unique Referral Hub</h3>
-        <p style="color: var(--text-dim); margin-bottom: 2rem;">Share your code with friends and earn on every successful referral.</p>
-        
-        <label style="color: var(--text-dim); display: block; margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Unique Referral Code</label>
-        <div style="display: flex; gap: 1rem; margin-bottom: 2.5rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; border: 1px dashed var(--accent);">
-          <input type="text" value="${refCode}" readonly style="flex-grow: 1; background: transparent; border: none; color: white; padding: 12px; font-size: 1.2rem; font-weight: 700; letter-spacing: 2px;"/>
-          <button class="btn btn-primary copy-btn" data-text="${refCode}" style="padding: 0 30px;">Copy Code</button>
+      <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+        <div class="chart-container" style="margin-bottom: 0;">
+          <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-share-nodes" style="color: #6366f1; margin-right: 12px;"></i>Your Referral Hub</h3>
+          <p style="color: #64748b; margin-bottom: 2.5rem; line-height: 1.6;">Use the tools below to share your unique link. When someone joins through you, they get an instant <strong>₹${friendDiscount} discount</strong>, and you earn <strong>₹${directComm}</strong>!</p>
+          
+          <div style="margin-bottom: 2rem;">
+            <label style="color: #64748b; display: block; margin-bottom: 0.75rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Direct Affiliate Link</label>
+            <div style="display: flex; gap: 10px; background: #f8fafc; padding: 8px; border-radius: 12px; border: 1px solid #e2e8f0; align-items: center;">
+              <code style="flex-grow: 1; padding: 10px; color: #1e293b; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${baseUrl}/?ref=${refCode}</code>
+              <button class="btn btn-primary copy-btn" data-text="${baseUrl}/?ref=${refCode}" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 8px; flex-shrink: 0;">
+                <i class="fas fa-copy"></i> Copy Link
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label style="color: #64748b; display: block; margin-bottom: 0.75rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Personal Referral Code</label>
+            <div style="display: flex; gap: 10px; background: #f8fafc; padding: 8px; border-radius: 12px; border: 1px dashed #6366f1; align-items: center;">
+              <div style="flex-grow: 1; padding: 10px; color: #6366f1; font-weight: 800; font-size: 1.4rem; letter-spacing: 2px;">${refCode}</div>
+              <button class="btn btn-outline copy-btn" data-text="${refCode}" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 8px; border-color: #6366f1; color: #6366f1; flex-shrink: 0;">
+                <i class="fas fa-copy"></i> Copy Code
+              </button>
+            </div>
+          </div>
         </div>
 
-        <label style="color: var(--text-dim); display: block; margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Direct Signup Link</label>
-        <div style="display: flex; gap: 1rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; border: 1px solid var(--card-border);">
-          <input type="text" value="${baseUrl}/?ref=${refCode}" readonly style="flex-grow: 1; background: transparent; border: none; color: white; padding: 12px; font-size: 0.9rem;"/>
-          <button class="btn btn-outline copy-btn" data-text="${baseUrl}/?ref=${refCode}" style="border-radius: 8px;">Copy Link</button>
+        <div class="chart-container" style="margin-bottom: 0; background: #0f172a; color: white;">
+          <h4 style="color: white; margin-bottom: 2rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-info-circle" style="color: #4ade80;"></i> How it works?
+          </h4>
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display: flex; gap: 15px;">
+              <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #4ade80; font-weight: 800;">1</div>
+              <div>
+                <div style="font-weight: 700; margin-bottom: 4px;">Share your link</div>
+                <div style="font-size: 0.85rem; color: #94a3b8;">People signup using your unique affiliate URL or code.</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 15px;">
+              <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #4ade80; font-weight: 800;">2</div>
+              <div>
+                <div style="font-weight: 700; margin-bottom: 4px;">Friend gets discount</div>
+                <div style="font-size: 0.85rem; color: #94a3b8;">They receive an instant ₹${friendDiscount} discount on any package they buy.</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 15px;">
+              <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #4ade80; font-weight: 800;">3</div>
+              <div>
+                <div style="font-weight: 700; margin-bottom: 4px;">You get paid</div>
+                <div style="font-size: 0.85rem; color: #94a3b8;">You earn ₹${directComm} direct commission per signup!</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 15px;">
+              <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #4ade80; font-weight: 800;">4</div>
+              <div>
+                <div style="font-weight: 700; margin-bottom: 4px;">Passive earnings</div>
+                <div style="font-size: 0.85rem; color: #94a3b8;">Earn ₹${passiveComm} for every sale made by your direct referrals.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%); padding: 2rem; border-radius: 20px; border: 1px solid rgba(147, 51, 234, 0.2);">
-        <h4 style="color: var(--accent); margin-bottom: 1rem;">How it works?</h4>
-        <ul style="color: var(--text-dim); line-height: 1.8; font-size: 0.95rem;">
-          <li>1. Copy your unique referral link or code.</li>
-          <li>2. Share it with your audience or friends.</li>
-          <li>3. When they sign up, you get <strong>₹400</strong> instantly.</li>
-          <li>4. When your team makes a sale, you get <strong>₹100</strong> passive income!</li>
-        </ul>
+      <div style="background: linear-gradient(to right, #f8fafc, #eff6ff); border-radius: 20px; padding: 2rem; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="width: 60px; height: 60px; background: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 1.5rem;">🏆</div>
+          <div>
+            <h4 style="margin-bottom: 4px;">Top Affiliate Program</h4>
+            <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Be a part of our elite community and earn globally.</p>
+          </div>
+        </div>
+        <button class="btn btn-outline" style="border-radius: 10px;">View Affiliate Policy</button>
+      </div>
+    </section>
+  `;
+};
+
+const UpgradeView = () => {
+  const ud = AppState.userData || {};
+  const isReferred = !!ud.referrerId;
+  const discount = AppState.commissionSettings.referralDiscount || 100;
+  
+  const packages = [
+    { name: 'Grow', price: 599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
+    { name: 'Creator', price: 1299, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
+    { name: 'Premium', price: 2499, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true }
+  ];
+
+  return `
+    <section class="main-content animate-fade">
+      <div style="text-align: center; margin-bottom: 4rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Scale Your Success 🚀</h1>
+        <p style="color: #64748b; font-size: 1.1rem; max-width: 700px; margin: 0 auto;">
+          Choose the perfect path to accelerate your digital career and maximize your earning potential.
+        </p>
+        ${isReferred ? `
+          <div style="margin-top: 2rem; display: inline-flex; align-items: center; gap: 10px; background: #ecfdf5; color: #059669; padding: 12px 24px; border-radius: 50px; border: 1px solid #10b981; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+            <i class="fas fa-gift"></i> Special Referral Discount Applied: -₹${discount}
+          </div>
+        ` : ''}
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; padding-bottom: 4rem;">
+        ${packages.map(p => {
+          const finalPrice = isReferred ? p.price - discount : p.price;
+          return `
+            <div class="upgrade-card ${p.best ? 'featured' : ''}" style="background: white; border-radius: 24px; padding: 2.5rem; border: 1px solid #f1f5f9; display: flex; flex-direction: column; position: relative; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); ${p.best ? 'box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.25); border: 2px solid #6366f1;' : 'box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);'}">
+              ${p.best ? '<div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #6366f1; color: white; padding: 6px 20px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px;">BEST VALUE</div>' : ''}
+              <div style="margin-bottom: 2rem;">
+                <h3 style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem;">${p.name} Package</h3>
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <span style="font-size: 2.5rem; font-weight: 900; color: #0f172a;">₹${finalPrice}</span>
+                  ${isReferred ? `<span style="text-decoration: line-through; color: #94a3b8; font-weight: 600;">₹${p.price}</span>` : ''}
+                </div>
+              </div>
+              <ul style="list-style: none; padding: 0; margin: 0 0 2.5rem; flex-grow: 1;">
+                ${p.features.map(f => `
+                  <li style="display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; color: #475569; font-weight: 500;">
+                    <i class="fas fa-check-circle" style="color: #6366f1;"></i> ${f}
+                  </li>
+                `).join('')}
+              </ul>
+              <button class="btn" style="width: 100%; height: 55px; border-radius: 12px; font-weight: 800; font-size: 1rem; transition: all 0.2s; ${p.best ? 'background: #6366f1; color: white;' : 'background: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0;'}">
+                Get Started Now <i class="fas fa-arrow-right" style="margin-left: 8px; font-size: 0.8rem;"></i>
+              </button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      
+      <div style="background: #f8fafc; border-radius: 20px; padding: 2.5rem; text-align: center; border: 1px dashed #cbd5e1;">
+        <h3>Custom Enterprise Solutions?</h3>
+        <p style="color: #64748b; margin: 0.5rem 0 1.5rem;">For team licenses or custom training bundles, contact our support team.</p>
+        <button class="btn btn-outline" style="border-radius: 10px;">Contact Support</button>
       </div>
     </section>
   `;
@@ -1768,7 +1911,8 @@ const AuthView = (type) => `
         ${type === 'signup' ? `
           <div class="form-field">
             <label class="form-label">Referral Code (Optional)</label>
-            <input type="text" id="signupReferral" class="auth-input" placeholder="Referral Code">
+            <input type="text" id="signupReferral" class="auth-input" placeholder="Referral Code" value="${sessionStorage.getItem('referralCode') || ''}">
+            ${sessionStorage.getItem('referralCode') ? '<p style="font-size: 0.75rem; color: #4ade80; font-weight: 600; margin-top: 4px;"><i class="fas fa-check-circle"></i> Referral Applied!</p>' : ''}
           </div>
         ` : ''}
         
@@ -1884,6 +2028,7 @@ const render = () => {
       case 'refund-policy': content = RefundPolicyView(); break;
       case 'disclaimer': content = DisclaimerView(); break;
       case 'terms': content = TermsView(); break;
+      case 'upgrade': content = UpgradeView(); break;
       case 'admin-dashboard': content = AdminDashboardView(); break;
       case 'admin-users': content = AdminUsersView(); break;
       case 'admin-courses': content = AdminCoursesView(); break;
@@ -1944,7 +2089,7 @@ const render = () => {
             </div>
           </section>`; break;
       default:
-        if (['upgrade', 'reports', 'offers', 'earning-target', 'create-account'].includes(AppState.view)) {
+        if (['reports', 'offers', 'earning-target', 'create-account'].includes(AppState.view)) {
           content = `
             <section class="main-content animate-fade-up">
               <h1>${AppState.view.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}</h1>
@@ -2256,7 +2401,8 @@ const attachEvents = () => {
       e.preventDefault();
       saveAdminSettings({
         direct: Number(document.querySelector('#directComm').value),
-        passive: Number(document.querySelector('#passiveComm').value)
+        passive: Number(document.querySelector('#passiveComm').value),
+        referralDiscount: Number(document.querySelector('#referralDiscount').value)
       });
     };
   }
