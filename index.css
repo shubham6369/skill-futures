@@ -412,8 +412,8 @@ body {
 /* ─── Footer ────────────────────────────────────────────────────────────────── */
 
 .footer {
-  background: #0f172a;
-  color: white;
+  background: #000000;
+  color: #ffffff;
   padding: 2.2rem 2rem 0;
   border-top: 1px solid var(--card-border);
   font-family: 'Poppins', sans-serif;
@@ -445,7 +445,7 @@ body {
 }
 
 .footer-description {
-  color: var(--text-dim);
+  color: #ffffff;
   font-size: 0.9rem;
   margin: 0.8rem 0;
   line-height: 1.8;
@@ -460,7 +460,7 @@ body {
 }
 
 .footer-links a {
-  color: var(--text-dim);
+  color: #ffffff;
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.3s;
@@ -492,19 +492,19 @@ body {
   display: flex;
   gap: 1rem;
   margin-bottom: 0.5rem;
-  color: var(--text-dim);
+  color: #ffffff;
   font-size: 0.9rem;
 }
 
 .footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 0.85rem;
-  color: var(--text-dim);
-  background: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  background: #000000;
 }
 
 
