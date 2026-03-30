@@ -1844,10 +1844,6 @@ const Footer = () => `
           <i class="fas fa-envelope"></i>
           <span>skillfuturessupport@gmail.com</span>
         </div>
-        <div class="footer-contact-item">
-          <i class="fas fa-map-marker-alt"></i>
-          <span>Village karanpur barki madayye sarkara khas District Moradabad (244001) (Uttar pradesh) Near by KGN hospital 🏥</span>
-        </div>
       </div>
     </div>
     
