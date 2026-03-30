@@ -1185,7 +1185,7 @@ const Sidebar = () => `
     <div class="sidebar-logo">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="/logo.png" alt="Logo" style="height: 90px; flex-shrink: 0;"/>
+          <img src="/logo.png" alt="Logo" style="height: 120px; flex-shrink: 0;"/>
         </div>
         <div style="font-size: 0.65rem; color: #64748b; font-weight: 600; padding-left: 0px; margin-top: 6px;">"Crafting Careers, Creating Incomes."</div>
       </div>
