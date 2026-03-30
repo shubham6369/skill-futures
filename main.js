@@ -52,7 +52,10 @@ const AppState = {
   user: null,
   userData: null,
   isAdmin: false,
-  leaderboard: [],
+  leaderboardToday: [],
+  leaderboardWeekly: [],
+  leaderboardMonthly: [],
+  activeLeaderboardTab: 'today',
   team: [],
   courses: [],
   userCourses: [],
@@ -162,14 +165,25 @@ const fetchUserData = async (uid) => {
   });
 };
 
-let _leaderboardUnsub = null;
+let _leaderboardUnsubs = [];
 const fetchLeaderboard = async () => {
-  if (_leaderboardUnsub) return;
-  const q = query(collection(db, 'users'), orderBy('allTimeEarnings', 'desc'), limit(10));
-  _leaderboardUnsub = onSnapshot(q, (querySnapshot) => {
-    AppState.leaderboard = querySnapshot.docs.map(doc => doc.data());
-    render();
-  });
+  if (_leaderboardUnsubs.length > 0) return;
+  const qToday = query(collection(db, 'users'), orderBy('todayEarnings', 'desc'), limit(10));
+  const qWeekly = query(collection(db, 'users'), orderBy('weeklyEarnings', 'desc'), limit(10));
+  const qMonthly = query(collection(db, 'users'), orderBy('monthlyEarnings', 'desc'), limit(10));
+  
+  _leaderboardUnsubs.push(onSnapshot(qToday, (snap) => {
+    AppState.leaderboardToday = snap.docs.map(doc => doc.data());
+    if (AppState.activeLeaderboardTab === 'today') render();
+  }));
+  _leaderboardUnsubs.push(onSnapshot(qWeekly, (snap) => {
+    AppState.leaderboardWeekly = snap.docs.map(doc => doc.data());
+    if (AppState.activeLeaderboardTab === 'weekly') render();
+  }));
+  _leaderboardUnsubs.push(onSnapshot(qMonthly, (snap) => {
+    AppState.leaderboardMonthly = snap.docs.map(doc => doc.data());
+    if (AppState.activeLeaderboardTab === 'monthly') render();
+  }));
 };
 
 const fetchTeam = async () => {
@@ -1334,27 +1348,55 @@ const DashboardView = () => {
   `;
 };
 
-const LeaderboardView = () => `
+window.switchLeaderboardTab = (tab) => {
+  AppState.activeLeaderboardTab = tab;
+  render();
+};
+
+const LeaderboardView = () => {
+  let activeList = [];
+  let tabLabel = '';
+  if (AppState.activeLeaderboardTab === 'weekly') {
+    activeList = AppState.leaderboardWeekly;
+    tabLabel = 'weeklyEarnings';
+  } else if (AppState.activeLeaderboardTab === 'monthly') {
+    activeList = AppState.leaderboardMonthly;
+    tabLabel = 'monthlyEarnings';
+  } else {
+    activeList = AppState.leaderboardToday;
+    tabLabel = 'todayEarnings';
+  }
+
+  return `
   <section class="main-content animate-fade-up">
-    <h1 style="margin-bottom: 3rem;">Leaderboard</h1>
+    <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem;">
+      <h1 style="margin-bottom: 1.5rem;">Leaderboard 🏆</h1>
+      <div style="background: #e2e8f0; padding: 4px; border-radius: 12px; display: flex; gap: 4px; overflow-x: auto; width: 100%; max-width: 500px;">
+        <button onclick="window.switchLeaderboardTab('today')" style="flex: 1; padding: 12px 16px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; background: ${AppState.activeLeaderboardTab === 'today' ? 'white' : 'transparent'}; color: ${AppState.activeLeaderboardTab === 'today' ? '#0f172a' : '#64748b'}; box-shadow: ${AppState.activeLeaderboardTab === 'today' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'};">1 Day</button>
+        <button onclick="window.switchLeaderboardTab('weekly')" style="flex: 1; padding: 12px 16px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; background: ${AppState.activeLeaderboardTab === 'weekly' ? 'white' : 'transparent'}; color: ${AppState.activeLeaderboardTab === 'weekly' ? '#0f172a' : '#64748b'}; box-shadow: ${AppState.activeLeaderboardTab === 'weekly' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'};">7 Days</button>
+        <button onclick="window.switchLeaderboardTab('monthly')" style="flex: 1; padding: 12px 16px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; background: ${AppState.activeLeaderboardTab === 'monthly' ? 'white' : 'transparent'}; color: ${AppState.activeLeaderboardTab === 'monthly' ? '#0f172a' : '#64748b'}; box-shadow: ${AppState.activeLeaderboardTab === 'monthly' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'};">30 Days</button>
+      </div>
+    </div>
     <div class="chart-container" style="background: white; border: 1px solid #f1f5f9;">
       <table style="width: 100%; border-collapse: collapse; color: #0f172a;">
         <thead>
           <tr style="text-align: left; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
             <th style="padding: 1.2rem;">Rank</th>
             <th style="padding: 1.2rem;">User</th>
-            <th style="padding: 1.2rem;">Total Earnings</th>
+            <th style="padding: 1.2rem;">Earnings</th>
           </tr>
         </thead>
         <tbody>
-          ${AppState.leaderboard.map((user, i) => `
+          ${activeList.length === 0 ? `<tr><td colspan="3" style="text-align:center; padding: 2rem; color: #64748b;">No earnings recorded yet.</td></tr>` : activeList.map((user, i) => `
             <tr style="border-bottom: 1px solid #f8fafc; transition: background 0.2s;" class="animate-fade stagger-${(i % 6) + 1}">
-              <td style="padding: 1.2rem; font-weight: 800; color: ${i < 3 ? '#fbbf24' : '#64748b'};">#${i + 1}</td>
+              <td style="padding: 1.2rem; font-weight: 800; color: ${i === 0 ? '#fbbf24' : (i === 1 ? '#94a3b8' : (i===2 ? '#b45309' : '#64748b'))};">#${i + 1}</td>
               <td style="padding: 1.2rem; display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 35px; height: 35px; background: #e2e8f0; border-radius: 50%;"></div>
-                <span style="font-weight: 600;">${user.name}</span>
+                <div style="width: 35px; height: 35px; background: #e2e8f0; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                  ${user.profileImage ? `<img src="${user.profileImage}" alt="pfp" style="width:100%; height:100%; object-fit:cover;">` : '<i class="fas fa-user" style="color:#94a3b8;"></i>'}
+                </div>
+                <span style="font-weight: 600;">${user.name || 'Anonymous'}</span>
               </td>
-              <td style="padding: 1.2rem; color: #16a34a; font-weight: 700;">₹ ${user.allTimeEarnings}</td>
+              <td style="padding: 1.2rem; color: #16a34a; font-weight: 700;">₹ ${user[tabLabel] || 0}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -1362,6 +1404,7 @@ const LeaderboardView = () => `
     </div>
   </section>
 `;
+};
 
 const TrainingsView = () => `
   <section class="main-content animate-fade">
