@@ -1,5 +1,5 @@
 import { auth, db, googleProvider, storage,
-  collection, query, where, orderBy, limit, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, increment, deleteDoc 
+  collection, query, where, orderBy, limit, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, increment, deleteDoc, onSnapshot
 } from './firebase.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { 
@@ -130,43 +130,46 @@ const AppState = {
 
 // ─── Data Actions ────────────────────────────────────────────────────────────
 
+let _userDataUnsub = null;
 const fetchUserData = async (uid) => {
-  const userDoc = await getDoc(doc(db, 'users', uid));
-  if (userDoc.exists()) {
-    AppState.userData = userDoc.data();
-    AppState.isAdmin = AppState.userData.role === 'admin';
-    render();
-  } else {
-    // Create initial user doc if missing
-    const initialData = {
-      name: AppState.user.displayName || 'Learner',
-      email: AppState.user.email,
-      todayEarnings: 0,
-      weeklyEarnings: 0,
-      monthlyEarnings: 0,
-      allTimeEarnings: 0,
-      passiveEarnings: 0,
-      industryEarnings: 0,
-      paidEarnings: 0,
-      role: 'user',
-      referralCode: `FF-${uid.substring(0, 5).toUpperCase()}`,
-      joinedAt: new Date().toISOString()
-    };
-    await setDoc(doc(db, 'users', uid), initialData);
-    AppState.userData = initialData;
-    AppState.isAdmin = false;
-    render();
-  }
+  if (_userDataUnsub) _userDataUnsub();
+  _userDataUnsub = onSnapshot(doc(db, 'users', uid), async (userDoc) => {
+    if (userDoc.exists()) {
+      AppState.userData = userDoc.data();
+      AppState.isAdmin = AppState.userData.role === 'admin';
+      render();
+    } else {
+      // Create initial user doc if missing
+      const initialData = {
+        name: AppState.user.displayName || 'Learner',
+        email: AppState.user.email,
+        todayEarnings: 0,
+        weeklyEarnings: 0,
+        monthlyEarnings: 0,
+        allTimeEarnings: 0,
+        passiveEarnings: 0,
+        industryEarnings: 0,
+        paidEarnings: 0,
+        role: 'user',
+        referralCode: `FF-${uid.substring(0, 5).toUpperCase()}`,
+        joinedAt: new Date().toISOString()
+      };
+      await setDoc(doc(db, 'users', uid), initialData);
+      AppState.userData = initialData;
+      AppState.isAdmin = false;
+      render();
+    }
+  });
 };
 
+let _leaderboardUnsub = null;
 const fetchLeaderboard = async () => {
-  if (AppState.loading.leaderboard) return;
-  AppState.loading.leaderboard = true;
+  if (_leaderboardUnsub) return;
   const q = query(collection(db, 'users'), orderBy('allTimeEarnings', 'desc'), limit(10));
-  const querySnapshot = await getDocs(q);
-  AppState.leaderboard = querySnapshot.docs.map(doc => doc.data());
-  AppState.loading.leaderboard = false;
-  render();
+  _leaderboardUnsub = onSnapshot(q, (querySnapshot) => {
+    AppState.leaderboard = querySnapshot.docs.map(doc => doc.data());
+    render();
+  });
 };
 
 const fetchTeam = async () => {
@@ -179,16 +182,14 @@ const fetchTeam = async () => {
   render();
 };
 
+let _coursesUnsub = null;
 const fetchCourses = async () => {
-  if (AppState.loading.courses) return;
-  AppState.loading.courses = true;
-  const querySnapshot = await getDocs(collection(db, 'courses'));
-  const dbCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
-  // Merge with dummy data or just use DB data
-  AppState.courses = dbCourses.length > 0 ? dbCourses : AppState.courses;
-  AppState.loading.courses = false;
-  render();
+  if (_coursesUnsub) return;
+  _coursesUnsub = onSnapshot(collection(db, 'courses'), (querySnapshot) => {
+    const dbCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    AppState.courses = dbCourses.length > 0 ? dbCourses : AppState.courses;
+    render();
+  });
 };
 
 const fetchUserCourses = async () => {
@@ -472,18 +473,17 @@ const saveCourse = async (courseData) => {
   }
 };
 
+let _adminNoticesUnsub = null;
 const fetchAdminNotices = async () => {
-  if (!AppState.isAdmin || AppState.loading.adminNotices) return;
-  AppState.loading.adminNotices = true;
-  try {
-    const snap = await getDocs(collection(db, 'notices'));
+  if (!AppState.isAdmin) return;
+  if (_adminNoticesUnsub) return;
+  _adminNoticesUnsub = onSnapshot(collection(db, 'notices'), (snap) => {
     AppState.allNotices = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     AppState.fetched.adminNotices = true;
-  } catch (err) {
+    render();
+  }, (err) => {
     console.error("Error fetching notices:", err);
-  }
-  AppState.loading.adminNotices = false;
-  render();
+  });
 };
 
 const saveNotice = async (notice) => {
