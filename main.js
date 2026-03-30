@@ -1185,7 +1185,7 @@ const Sidebar = () => `
     <div class="sidebar-logo">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="/logo.png" alt="Logo" style="height: 100px; flex-shrink: 0;"/>
+          <img src="/logo-new.png" alt="Logo" style="height: 100px; flex-shrink: 0;"/>
         </div>
 
       </div>
@@ -2117,8 +2117,9 @@ const Footer = () => `
     <div class="footer-grid">
       <div class="footer-col" style="flex: 1.5;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
-          <img src="/logo.png" alt="Logo" class="footer-logo-img" style="height: 60px;"/>
+          <img src="/logo-new.png" alt="Logo" style="height: 60px;"/>
         </div>
+        <div style="font-size: 0.9rem; color: #ffffff; font-weight: 600; margin-bottom: 1rem; opacity: 0.8;">"Empower Your Digital Journey"</div>
 
         <p class="footer-description">
           An E-learning platform that helps people build their own personal brand on social media and create passive income.

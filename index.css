@@ -419,10 +419,7 @@ body {
   font-family: 'Poppins', sans-serif;
 }
 
-.footer-logo-img {
-  filter: invert(1) grayscale(1) brightness(1.5);
-  mix-blend-mode: screen;
-}
+
 
 .footer-grid {
   display: grid;
