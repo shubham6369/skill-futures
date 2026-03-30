@@ -2117,7 +2117,7 @@ const Footer = () => `
     <div class="footer-grid">
       <div class="footer-col" style="flex: 1.5;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
-          <img src="/logo.png" alt="Logo" style="height: 40px;"/>
+          <img src="/logo.png" alt="Logo" class="footer-logo-img" style="height: 40px;"/>
         </div>
 
         <p class="footer-description">
