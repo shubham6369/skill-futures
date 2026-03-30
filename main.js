@@ -2119,7 +2119,7 @@ const Footer = () => `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
           <img src="/logo.png" alt="Logo" style="height: 40px;"/>
         </div>
-        <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem;">"Empower Your Digital Journey"</div>
+
         <p class="footer-description">
           An E-learning platform that helps people build their own personal brand on social media and create passive income.
         </p>
