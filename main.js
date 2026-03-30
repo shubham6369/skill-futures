@@ -1,9 +1,10 @@
-import { auth, db, 
+import { auth, db, googleProvider,
   collection, query, where, orderBy, limit, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, increment, deleteDoc 
 } from './firebase.js';
 import { 
   onAuthStateChanged, 
   signOut, 
+  signInWithPopup,
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword 
 } from 'firebase/auth';
@@ -247,6 +248,16 @@ const requestPayout = async (amount, upi) => {
   alert("Payout request submitted successfully!");
   AppState.view = 'dashboard';
   render();
+};
+
+const signInWithGoogle = async () => {
+  try {
+    await signInWithPopup(auth, googleProvider);
+  } catch (err) {
+    if (err.code !== 'auth/popup-closed-by-user') {
+      alert(err.message);
+    }
+  }
 };
 
 // ─── Admin Actions ───────────────────────────────────────────────────────────
@@ -1765,6 +1776,15 @@ const AuthView = (type) => `
           ${type === 'login' ? 'Sign In' : 'Sign Up'} <i class="fas fa-arrow-right"></i>
         </button>
       </form>
+
+      <div class="auth-divider">
+        <span>OR</span>
+      </div>
+
+      <button class="btn-google" id="googleSignInBtn">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="Google">
+        Continue with Google
+      </button>
       
       <div class="auth-footer">
         ${type === 'login' ? `Don't have an account? <span id="toSignUp" style="color: #5e5ce6; font-weight: 700; cursor: pointer;">Sign Up</span>` : `Already have an account? <span id="toSignIn" style="color: #5e5ce6; font-weight: 700; cursor: pointer;">Login</span>`}
@@ -2045,6 +2065,11 @@ const attachEvents = () => {
       const pass = document.querySelector('#loginPassword').value;
       try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert(e.message); }
     };
+  }
+
+  const googleSignInBtn = document.querySelector('#googleSignInBtn');
+  if (googleSignInBtn) {
+    googleSignInBtn.onclick = signInWithGoogle;
   }
 
   const signupForm = document.querySelector('#signupForm');
