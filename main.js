@@ -1,6 +1,7 @@
-import { auth, db, googleProvider,
+import { auth, db, googleProvider, storage,
   collection, query, where, orderBy, limit, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, increment, deleteDoc 
 } from './firebase.js';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { 
   onAuthStateChanged, 
   signOut, 
@@ -59,6 +60,7 @@ const AppState = {
   allPayouts: [],
   allNotices: [],
   selectedCourseId: null,
+  uploadingProfile: false,
   showWelcomeModal: false,
   profileTab: 'details',
   isSidebarVisible: true,
@@ -270,6 +272,48 @@ const signInWithGoogle = async () => {
     if (err.code !== 'auth/popup-closed-by-user') {
       alert(err.message);
     }
+  }
+};
+
+window.uploadProfileImage = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Image size should be less than 5MB");
+    return;
+  }
+
+  AppState.uploadingProfile = true;
+  render();
+
+  try {
+    const fileRef = ref(storage, `users/${AppState.user.uid}/profile_${Date.now()}`);
+    const uploadTask = uploadBytesResumable(fileRef, file);
+
+    uploadTask.on('state_changed', 
+      (snapshot) => {}, 
+      (error) => {
+        console.error("Upload failed:", error);
+        alert("Upload failed. Ensure Firebase Storage is configured.");
+        AppState.uploadingProfile = false;
+        render();
+      }, 
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        await updateDoc(doc(db, 'users', AppState.user.uid), {
+          profileImage: downloadURL
+        });
+        AppState.userData.profileImage = downloadURL;
+        AppState.uploadingProfile = false;
+        render();
+      }
+    );
+  } catch(err) {
+    console.error("Error initiating upload:", err);
+    alert("Upload error.");
+    AppState.uploadingProfile = false;
+    render();
   }
 };
 
@@ -602,8 +646,12 @@ const ProfileView = () => {
       <div class="profile-section-container">
         <!-- Left Card -->
         <div class="profile-card card-left">
-          <div class="profile-overview-header">
-            <img src="${ud.profilePic || 'https://via.placeholder.com/150'}" class="profile-image-large" alt="Profile">
+          <div class="profile-overview-header" style="position: relative;">
+            <label for="profileImageInput" style="cursor: pointer; display: inline-block; position: relative; margin: 0 auto;">
+              <img src="${ud.profileImage || ud.profilePic || 'https://via.placeholder.com/150'}" class="profile-image-large" alt="Profile" style="opacity: ${AppState.uploadingProfile ? '0.5' : '1'};">
+              ${AppState.uploadingProfile ? '<div style="position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); color: white; font-size: 1.5rem;"><i class="fas fa-spinner fa-spin"></i></div>' : '<div style="position: absolute; bottom: 0; right: 0; background: var(--accent); color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-size: 0.9rem;"><i class="fas fa-camera"></i></div>'}
+            </label>
+            <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="window.uploadProfileImage(event)">
             <h3>${ud.name || 'Learner'}</h3>
             <p>${AppState.user.email}</p>
           </div>
@@ -1043,9 +1091,8 @@ const AdminSidebar = () => `
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
         <div style="display: flex; align-items: center; gap: 8px;">
           <img src="/logo.png" alt="Logo" style="height: 32px; flex-shrink: 0; filter: brightness(0) invert(1);"/>
-          <div style="font-size: 1.3rem; font-weight: 800; color: #6366f1; letter-spacing: -0.5px; white-space: nowrap;">SkillAdmin</div>
         </div>
-        <div style="font-size: 0.6rem; color: #94a3b8; font-weight: 600; padding-left: 40px; margin-top: -4px;">"Platform Control Center"</div>
+        <div style="font-size: 0.6rem; color: #94a3b8; font-weight: 600; padding-left: 0px; margin-top: 4px;">"Platform Control Center"</div>
       </div>
       <button id="sidebarToggleClose" class="sidebar-toggle-btn">
         <i class="fas fa-times"></i>
@@ -1104,9 +1151,8 @@ const Sidebar = () => `
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
         <div style="display: flex; align-items: center; gap: 8px;">
           <img src="/logo.png" alt="Logo" style="height: 32px; flex-shrink: 0;"/>
-          <div style="font-size: 1.3rem; font-weight: 800; color: #4338ca; letter-spacing: -0.5px; white-space: nowrap;">SkillFutures</div>
         </div>
-        <div style="font-size: 0.6rem; color: #64748b; font-weight: 600; padding-left: 40px; margin-top: -4px;">"Crafting Careers, Creating Incomes."</div>
+        <div style="font-size: 0.6rem; color: #64748b; font-weight: 600; padding-left: 0px; margin-top: 4px;">"Crafting Careers, Creating Incomes."</div>
       </div>
       <button id="sidebarToggleClose" class="sidebar-toggle-btn">
         <i class="fas fa-times"></i>
@@ -1862,8 +1908,7 @@ const TermsView = () => `
 
 const HomeView = () => `
   <div class="hero">
-    <img src="/logo.png" alt="SkillFutures Logo" style="height: 80px; margin-bottom: 2rem;">
-    <h1>SkillFutures</h1>
+    <img src="/logo.png" alt="Logo" style="height: 80px; margin-bottom: 2rem;">
     <h2>Empower Your Digital Journey</h2>
     <p style="font-size: 1.2rem; color: var(--text-dim); max-width: 600px; margin: 0 auto 2rem;">
       The ultimate platform to master digital skills and build a sustainable affiliate income.
@@ -1943,11 +1988,10 @@ const Footer = () => `
       <div class="footer-col" style="flex: 1.5;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
           <img src="/logo.png" alt="Logo" style="height: 40px;"/>
-          <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent);">SkillFutures</div>
         </div>
         <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem;">"Empower Your Digital Journey"</div>
         <p class="footer-description">
-          SkillFutures is an E-learning platform. this platform helps people to make own personal brand on social media and create passive income.
+          An E-learning platform that helps people build their own personal brand on social media and create passive income.
         </p>
         <div class="footer-socials">
           <a href="#"><i class="fab fa-facebook-f"></i></a>
@@ -1992,7 +2036,7 @@ const Footer = () => `
     </div>
     
     <div class="footer-bottom">
-      <div>Copyright © 2026 SkillFutures. All rights reserved.</div>
+      <div>Copyright © 2026. All rights reserved.</div>
       <div data-route="admin-dashboard" style="color: #ef4444; font-weight: 800; cursor: pointer; font-size: 0.75rem; letter-spacing: 1px; margin-left: 1rem;">[ ADMIN PANEL ]</div>
     </div>
   </footer>
@@ -2142,7 +2186,6 @@ const render = () => {
       <header style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border);">
         <div style="display: flex; align-items: center; gap: 10px;">
           <img src="/logo.png" alt="Logo" style="height: 35px;"/>
-          <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent);">SkillFutures</div>
         </div>
         <nav>${AppState.view === 'home' ? `<button class="btn btn-primary" data-route="signup">Join Now</button><button class="btn btn-outline" data-route="login" style="margin-left:1rem;">Login</button>` : ''}</nav>
       </header>
