@@ -1187,7 +1187,7 @@ const Sidebar = () => `
         <div style="display: flex; align-items: center; gap: 10px;">
           <img src="/logo.png" alt="Logo" style="height: 100px; flex-shrink: 0;"/>
         </div>
-        <div style="font-size: 1.3rem; color: #64748b; font-weight: 600; padding-left: 0px; margin-top: 6px;">"Crafting Careers, Creating Incomes."</div>
+        <div style="font-size: 0.9rem; color: #64748b; font-weight: 600; padding-left: 0px; margin-top: 6px;">"Crafting Careers, Creating Incomes."</div>
       </div>
       <button id="sidebarToggleClose" class="sidebar-toggle-btn">
         <i class="fas fa-times"></i>
