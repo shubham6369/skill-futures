@@ -165,7 +165,9 @@ const awardReferralCommissions = async (referrerUid) => {
 
 const signInWithGoogle = async () => {
   try {
-    await signInWithPopup(auth, googleProvider);
+    console.log("Starting Google Sign-In popup...");
+    const result = await signInWithPopup(auth, googleProvider);
+    console.log("Google Sign-In Success:", result.user.email);
   } catch (e) {
     console.error("Google Sign-In Error:", e);
     if (e.code !== 'auth/popup-closed-by-user') {
@@ -2577,10 +2579,9 @@ const attachEvents = () => {
     };
   }
 
-  const googleSignInBtn = document.querySelector('#googleSignInBtn');
-  if (googleSignInBtn) {
-    googleSignInBtn.onclick = signInWithGoogle;
-  }
+  document.querySelectorAll('.btn-google').forEach(btn => {
+    btn.onclick = signInWithGoogle;
+  });
 
   const signupForm = document.querySelector('#signupForm');
   if (signupForm) {
