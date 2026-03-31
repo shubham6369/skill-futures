@@ -2088,6 +2088,36 @@ const HomeView = () => `
     </p>
     <button class="btn btn-primary" data-route="signup">Start Your Journey</button>
   </div>
+  ${PackagesSection()}
+`;
+
+const PackagesSection = () => `
+  <section class="packages-section animate-fade-up">
+    <h2>Our Exclusive Packages</h2>
+    <p>Empower your journey with our carefully curated digital skill development packages.</p>
+    <div class="package-grid">
+      <div class="package-card" data-route="signup">
+        <div class="package-badge">Best for Beginners</div>
+        <img src="/basic-package.png" alt="Basic Package">
+      </div>
+      <div class="package-card" data-route="signup">
+        <div class="package-badge">Advance Skills</div>
+        <img src="/advance-package.png" alt="Advance Package">
+      </div>
+      <div class="package-card" data-route="signup">
+        <div class="package-badge">Most Popular</div>
+        <img src="/creator-package.png" alt="Creator Package">
+      </div>
+      <div class="package-card" data-route="signup">
+        <div class="package-badge">Global Access</div>
+        <img src="/global-package.png" alt="Global Package">
+      </div>
+      <div class="package-card" data-route="signup">
+        <div class="package-badge">Elite Pro</div>
+        <img src="/premium-package.png" alt="Premium Package">
+      </div>
+    </div>
+  </section>
 `;
 
 const AuthView = (type) => `
