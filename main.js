@@ -1770,18 +1770,18 @@ const UpgradeView = () => {
   const discount = AppState.commissionSettings.referralDiscount || 100;
   
   const packages = [
-    { name: 'Grow', price: 599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
-    { name: 'Creator', price: 1299, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
-    { name: 'Premium', price: 2499, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true }
+    { name: 'Grow', badge: 'Best for Beginners', img: '/basic-package.png', price: 599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
+    { name: 'Creator', badge: 'Creator Skills', img: '/advance-package.png', price: 1299, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
+    { name: 'Finance', badge: 'Financial Mastery', img: '/creator-package.png', price: 2499, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
+    { name: 'Prime', badge: 'High-Income Skills', img: '/global-package.png', price: 3999, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
+    { name: 'Premium', badge: 'Elite Pro', img: '/premium-package.png', price: 4999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
   ];
 
   return `
     <section class="main-content animate-fade">
-      <div style="text-align: center; margin-bottom: 4rem;">
-        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Scale Your Success 🚀</h1>
-        <p style="color: #64748b; font-size: 1.1rem; max-width: 700px; margin: 0 auto;">
-          Choose the perfect path to accelerate your digital career and maximize your earning potential.
-        </p>
+      <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #0f172a;">Upgrade Your Journey 🚀</h1>
+        <p style="color: #64748b; font-size: 1.1rem; max-width: 700px; margin: 0 auto;">Select a premium package to unlock high-income skills and accelerate your digital entrepreneurship journey.</p>
         ${isReferred ? `
           <div style="margin-top: 2rem; display: inline-flex; align-items: center; gap: 10px; background: #ecfdf5; color: #059669; padding: 12px 24px; border-radius: 50px; border: 1px solid #10b981; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
             <i class="fas fa-gift"></i> Special Referral Discount Applied: -₹${discount}
@@ -1789,42 +1789,41 @@ const UpgradeView = () => {
         ` : ''}
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; padding-bottom: 4rem;">
+      <div class="package-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2.5rem; max-width: 1400px; margin: 0 auto; padding-bottom: 4rem;">
         ${packages.map(p => {
           const finalPrice = isReferred ? p.price - discount : p.price;
           return `
-            <div class="upgrade-card ${p.best ? 'featured' : ''}" style="background: white; border-radius: 24px; padding: 2.5rem; border: 1px solid #f1f5f9; display: flex; flex-direction: column; position: relative; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); ${p.best ? 'box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.25); border: 2px solid #6366f1;' : 'box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);'}">
-              ${p.best ? '<div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #6366f1; color: white; padding: 6px 20px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px;">BEST VALUE</div>' : ''}
-              <div style="margin-bottom: 2rem;">
-                <h3 style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem;">${p.name} Package</h3>
-                <div style="display: flex; align-items: baseline; gap: 8px;">
+            <div class="package-card upgrade-card ${p.best ? 'featured-upgrade' : ''}" style="display: flex; flex-direction: column; background: white; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+              <div class="package-badge" style="position: absolute; top: 20px; right: 20px; background: ${p.best ? '#6366f1' : '#4338ca'}; color: white; padding: 6px 16px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; z-index: 10;">${p.badge}</div>
+              <img src="${p.img}" alt="${p.name} Package" style="width: 100%; height: auto; border-bottom: 1px solid #f1f5f9;">
+              <div style="padding: 2.5rem; flex-grow: 1; display: flex; flex-direction: column;">
+                <h3 style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem;">${p.name} Package</h3>
+                <div style="margin-bottom: 2rem;">
                   <span style="font-size: 2.5rem; font-weight: 900; color: #0f172a;">₹${finalPrice}</span>
-                  ${isReferred ? `<span style="text-decoration: line-through; color: #94a3b8; font-weight: 600;">₹${p.price}</span>` : ''}
+                  ${isReferred ? `<span style="text-decoration: line-through; color: #94a3b8; font-weight: 600; margin-left: 8px;">₹${p.price}</span>` : ''}
                 </div>
+                <ul style="list-style: none; padding: 0; margin-bottom: 2.5rem; flex-grow: 1;">
+                  ${p.features.map(f => `<li style="display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; font-size: 1rem; color: #475569; font-weight: 500;"><i class="fas fa-check-circle" style="color: #6366f1;"></i> ${f}</li>`).join('')}
+                </ul>
+                <button class="btn btn-primary" style="width: 100%; height: 55px; border-radius: 12px; font-weight: 800; font-size: 1rem; transition: all 0.2s;" onclick="alert('Redirecting to secure payment for ${p.name} package...')">Get Started Now <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></button>
               </div>
-              <ul style="list-style: none; padding: 0; margin: 0 0 2.5rem; flex-grow: 1;">
-                ${p.features.map(f => `
-                  <li style="display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; color: #475569; font-weight: 500;">
-                    <i class="fas fa-check-circle" style="color: #6366f1;"></i> ${f}
-                  </li>
-                `).join('')}
-              </ul>
-              <button class="btn" style="width: 100%; height: 55px; border-radius: 12px; font-weight: 800; font-size: 1rem; transition: all 0.2s; ${p.best ? 'background: #6366f1; color: white;' : 'background: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0;'}">
-                Get Started Now <i class="fas fa-arrow-right" style="margin-left: 8px; font-size: 0.8rem;"></i>
-              </button>
             </div>
           `;
         }).join('')}
       </div>
       
-      <div style="background: #f8fafc; border-radius: 20px; padding: 2.5rem; text-align: center; border: 1px dashed #cbd5e1;">
-        <h3>Custom Enterprise Solutions?</h3>
-        <p style="color: #64748b; margin: 0.5rem 0 1.5rem;">For team licenses or custom training bundles, contact our support team.</p>
-        <button class="btn btn-outline" style="border-radius: 10px;">Contact Support</button>
+      <div style="background: #eef2ff; border-radius: 20px; padding: 3rem; text-align: center; border: 1px dashed #6366f1; margin: 0 auto; max-width: 900px;">
+        <h3 style="color: #1e1b4b; font-size: 1.5rem; font-weight: 800;">Custom Upgrade Needed?</h3>
+        <p style="color: #2e1065; font-weight: 500; margin: 0.8rem 0 2rem; font-size: 1.1rem;">For team licenses or specialized training bundles, connect directly with our support team.</p>
+        <div style="display: flex; justify-content: center; gap: 1.5rem;">
+          <button class="btn btn-primary" style="background: #4338ca; border-radius: 12px; padding: 1rem 2rem;">Contact Support</button>
+          <button class="btn btn-outline" style="border: 2px solid #4338ca; color: #4338ca; border-radius: 12px; padding: 1rem 2rem;">Chat with Us</button>
+        </div>
       </div>
     </section>
   `;
 };
+
 
 const PrivacyPolicyView = () => `
   <section class="main-content animate-fade">
@@ -2142,23 +2141,43 @@ const PackagesSection = () => `
     <div class="package-grid">
       <div class="package-card" data-route="signup">
         <div class="package-badge">Best for Beginners</div>
-        <img src="/basic-package.png" alt="Basic Package">
+        <img src="/basic-package.png" alt="Grow Package">
+        <div class="package-info">
+          <h3>Grow Package</h3>
+          <p>₹599</p>
+        </div>
       </div>
       <div class="package-card" data-route="signup">
-        <div class="package-badge">Advance Skills</div>
-        <img src="/advance-package.png" alt="Advance Package">
+        <div class="package-badge">Creator Skills</div>
+        <img src="/advance-package.png" alt="Creator Package">
+        <div class="package-info">
+          <h3>Creator Package</h3>
+          <p>₹1299</p>
+        </div>
       </div>
       <div class="package-card" data-route="signup">
         <div class="package-badge">Most Popular</div>
-        <img src="/creator-package.png" alt="Creator Package">
+        <img src="/creator-package.png" alt="Finance Package">
+        <div class="package-info">
+          <h3>Finance Package</h3>
+          <p>₹2499</p>
+        </div>
       </div>
       <div class="package-card" data-route="signup">
         <div class="package-badge">Global Access</div>
-        <img src="/global-package.png" alt="Global Package">
+        <img src="/global-package.png" alt="Prime Package">
+        <div class="package-info">
+          <h3>Prime Package</h3>
+          <p>₹3999</p>
+        </div>
       </div>
       <div class="package-card" data-route="signup">
         <div class="package-badge">Elite Pro</div>
         <img src="/premium-package.png" alt="Premium Package">
+        <div class="package-info">
+          <h3>Premium Package</h3>
+          <p>₹4999</p>
+        </div>
       </div>
     </div>
   </section>

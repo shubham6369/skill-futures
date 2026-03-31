@@ -1655,6 +1655,25 @@ body {
   z-index: 10;
 }
 
+.package-info {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.package-info h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.package-info p {
+  color: #4338ca;
+  font-weight: 900;
+  font-size: 1.5rem !important;
+  margin: 0 !important;
+}
+
 /* ─── Signup Page (Split Screen) ─────────────────────────────────────────── */
 
 .signup-page-wrapper {
