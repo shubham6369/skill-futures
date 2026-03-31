@@ -133,6 +133,47 @@ const AppState = {
 
 // ─── Data Actions ────────────────────────────────────────────────────────────
 
+/**
+ * Common Reward Logic for Referrals
+ * Adds commissions to referrer and indirect referrer.
+ */
+const awardReferralCommissions = async (referrerUid) => {
+  if (!referrerUid) return;
+
+  try {
+    // 1. Direct Commission (₹400)
+    await updateDoc(doc(db, 'users', referrerUid), {
+      todayEarnings: increment(AppState.commissionSettings.direct),
+      weeklyEarnings: increment(AppState.commissionSettings.direct),
+      monthlyEarnings: increment(AppState.commissionSettings.direct),
+      allTimeEarnings: increment(AppState.commissionSettings.direct)
+    });
+
+    // 2. Passive Commission (₹100) - Award to Referrer's Referrer
+    const referrerDoc = await getDoc(doc(db, 'users', referrerUid));
+    if (referrerDoc.exists() && referrerDoc.data().referrerId) {
+      const indirectId = referrerDoc.data().referrerId;
+      await updateDoc(doc(db, 'users', indirectId), {
+        passiveEarnings: increment(AppState.commissionSettings.passive),
+        allTimeEarnings: increment(AppState.commissionSettings.passive)
+      });
+    }
+  } catch (e) {
+    console.error("Error awarding commissions:", e);
+  }
+};
+
+const signInWithGoogle = async () => {
+  try {
+    await signInWithPopup(auth, googleProvider);
+  } catch (e) {
+    console.error("Google Sign-In Error:", e);
+    if (e.code !== 'auth/popup-closed-by-user') {
+      alert(e.message);
+    }
+  }
+};
+
 let _userDataUnsub = null;
 const fetchUserData = async (uid) => {
   if (_userDataUnsub) _userDataUnsub();
@@ -142,7 +183,26 @@ const fetchUserData = async (uid) => {
       AppState.isAdmin = AppState.userData.role === 'admin';
       render();
     } else {
-      // Create initial user doc if missing
+      // Create initial user doc if missing (e.g., after Google Sign-In or new account)
+      let referrerId = null;
+      const refCode = sessionStorage.getItem('referralCode');
+      
+      if (refCode) {
+        try {
+          const q = query(collection(db, 'users'), where('referralCode', '==', refCode.trim().toUpperCase()), limit(1));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            referrerId = snap.docs[0].id;
+            // Award commissions immediately
+            await awardReferralCommissions(referrerId);
+          }
+          // Clear it so we don't try to award again
+          sessionStorage.removeItem('referralCode');
+        } catch (e) {
+          console.error("Referral Lookup Error:", e);
+        }
+      }
+
       const initialData = {
         name: AppState.user.displayName || 'Learner',
         email: AppState.user.email,
@@ -155,9 +215,11 @@ const fetchUserData = async (uid) => {
         paidEarnings: 0,
         role: 'user',
         referralCode: `FF-${uid.substring(0, 5).toUpperCase()}`,
+        referrerId: referrerId,
         joinedAt: new Date().toISOString()
       };
       await setDoc(doc(db, 'users', uid), initialData);
+      
       AppState.userData = initialData;
       AppState.isAdmin = false;
       render();
@@ -312,16 +374,6 @@ const requestPayout = async (amount, upi) => {
     await fetchUserPayouts();
   } catch (err) {
     alert("Error submitting request: " + err.message);
-  }
-};
-
-const signInWithGoogle = async () => {
-  try {
-    await signInWithPopup(auth, googleProvider);
-  } catch (err) {
-    if (err.code !== 'auth/popup-closed-by-user') {
-      alert(err.message);
-    }
   }
 };
 
@@ -2498,7 +2550,11 @@ const attachEvents = () => {
       e.preventDefault();
       const email = document.querySelector('#loginEmail').value;
       const pass = document.querySelector('#loginPassword').value;
-      try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert(e.message); }
+      try { 
+        await signInWithEmailAndPassword(auth, email, pass); 
+      } catch (e) { 
+        alert(e.message); 
+      }
     };
   }
 
@@ -2528,37 +2584,30 @@ const attachEvents = () => {
 
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
         const initialData = {
-          name, email, todayEarnings: 0, weeklyEarnings: 0, monthlyEarnings: 0,
-          allTimeEarnings: 0, passiveEarnings: 0, industryEarnings: 0, paidEarnings: 0,
+          name, 
+          email, 
+          todayEarnings: 0, 
+          weeklyEarnings: 0, 
+          monthlyEarnings: 0,
+          allTimeEarnings: 0, 
+          passiveEarnings: 0, 
+          industryEarnings: 0, 
+          paidEarnings: 0,
+          role: 'user',
           referralCode: `FF-${cred.user.uid.substring(0, 5).toUpperCase()}`,
           referrerId: referrerUid,
           joinedAt: new Date().toISOString()
         };
         await setDoc(doc(db, 'users', cred.user.uid), initialData);
 
-        // --- Award Commission ---
+        // Award Commission if referrer exists
         if (referrerUid) {
-          // Direct Commission (₹400)
-          await updateDoc(doc(db, 'users', referrerUid), {
-            todayEarnings: increment(AppState.commissionSettings.direct),
-            weeklyEarnings: increment(AppState.commissionSettings.direct),
-            monthlyEarnings: increment(AppState.commissionSettings.direct),
-            allTimeEarnings: increment(AppState.commissionSettings.direct)
-          });
-
-          // Passive Commission (Next Level) - Lookup referrer's referrer
-          const referrerDoc = await getDoc(doc(db, 'users', referrerUid));
-          if (referrerDoc.exists() && referrerDoc.data().referrerId) {
-            const indirectId = referrerDoc.data().referrerId;
-            await updateDoc(doc(db, 'users', indirectId), {
-              passiveEarnings: increment(AppState.commissionSettings.passive),
-              allTimeEarnings: increment(AppState.commissionSettings.passive)
-            });
-          }
+          await awardReferralCommissions(referrerUid);
+          sessionStorage.removeItem('referralCode');
         }
       } catch (e) { 
         console.error(e);
-        alert(e.message); 
+        alert(e.message);
       }
     };
   }
