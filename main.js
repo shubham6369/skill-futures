@@ -181,10 +181,11 @@ let _userDataUnsub = null;
 const fetchUserData = async (uid) => {
   if (_userDataUnsub) _userDataUnsub();
   _userDataUnsub = onSnapshot(doc(db, 'users', uid), async (userDoc) => {
+    let userData = null;
     if (userDoc.exists()) {
-      AppState.userData = userDoc.data();
-      AppState.isAdmin = AppState.userData.role === 'admin';
-      render();
+      userData = userDoc.data();
+      AppState.userData = userData;
+      AppState.isAdmin = userData.role === 'admin';
     } else {
       // Create initial user doc if missing (e.g., after Google Sign-In or new account)
       let referrerId = null;
@@ -196,17 +197,15 @@ const fetchUserData = async (uid) => {
           const snap = await getDocs(q);
           if (!snap.empty) {
             referrerId = snap.docs[0].id;
-            // Award commissions immediately
             await awardReferralCommissions(referrerId);
           }
-          // Clear it so we don't try to award again
           sessionStorage.removeItem('referralCode');
         } catch (e) {
           console.error("Referral Lookup Error:", e);
         }
       }
 
-      const initialData = {
+      userData = {
         name: AppState.user.displayName || 'Learner',
         email: AppState.user.email,
         todayEarnings: 0,
@@ -221,12 +220,31 @@ const fetchUserData = async (uid) => {
         referrerId: referrerId,
         joinedAt: new Date().toISOString()
       };
-      await setDoc(doc(db, 'users', uid), initialData);
-      
-      AppState.userData = initialData;
+      await setDoc(doc(db, 'users', uid), userData);
+      AppState.userData = userData;
       AppState.isAdmin = false;
-      render();
     }
+
+    // --- Onboarding Logic ---
+    // If the user arrives at home, login, or signup while authenticated,
+    // we guide them to the appropriate next stop.
+    if (['home', 'login', 'signup'].includes(AppState.view)) {
+      if (!userData.package) {
+        AppState.view = 'select-package';
+      } else {
+        AppState.view = 'dashboard';
+      }
+    }
+    
+    // Check if we should show the welcome modal (only on dashboard)
+    if (AppState.view === 'dashboard' && !AppState.showWelcomeModal) {
+      const hideUntil = localStorage.getItem('hideWelcomeModalUntil');
+      if (!hideUntil || new Date().getTime() > parseInt(hideUntil)) {
+        AppState.showWelcomeModal = true;
+      }
+    }
+
+    render();
   });
 };
 
@@ -2932,25 +2950,15 @@ const attachEvents = () => {
 onAuthStateChanged(auth, (user) => {
   AppState.user = user;
   if (user) {
+    // Just fetch data. The fetchUserData onSnapshot will handle view redirection.
     fetchUserData(user.uid);
-    if (['home', 'login', 'signup'].includes(AppState.view)) {
-      // Enforce package selection
-      if (!AppState.userData || !AppState.userData.package) {
-        AppState.view = 'select-package';
-      } else {
-        AppState.view = 'dashboard';
-      }
-      
-      // Check if we should show the welcome modal
-      const hideUntil = localStorage.getItem('hideWelcomeModalUntil');
-      const now = new Date().getTime();
-      if (!hideUntil || now > parseInt(hideUntil)) {
-        AppState.showWelcomeModal = true;
-      }
-    }
   } else {
+    // Cleanup and return to Home for guests
     AppState.userData = null;
-    if (!['login', 'signup'].includes(AppState.view)) AppState.view = 'home';
+    AppState.isAdmin = false;
+    if (!['login', 'signup'].includes(AppState.view)) {
+      AppState.view = 'home';
+    }
   }
   render();
 });
