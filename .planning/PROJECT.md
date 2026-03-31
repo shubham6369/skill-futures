@@ -18,3 +18,8 @@ To provide a seamless learning experience with clear progression paths and certi
 - Student Success Showcases
 - Mentor & Instructor Profiles
 - Integrated Authentication Portal (Front-end ready)
+
+## Standard Operating Procedures
+1. **Skill-First Development**: For every build, modification, or architecture task, **always** cross-reference the available `@skills` library first.
+2. **Playbook Alignment**: Match the task intent to the most relevant expert skill (e.g., `@architecture` for schema, `@ui-ux-designer` for layout) to ensure industry-standard implementation.
+3. **Continuous Verification**: Use `@lint-and-validate` and appropriate testing skills after every significant modification.

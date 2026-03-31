@@ -1,2 +1,0 @@
-To https://github.com/shubham6369/skill-futures.git
-   7bdaa75..f16a4b2  main -> main
