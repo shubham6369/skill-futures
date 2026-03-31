@@ -2080,14 +2080,6 @@ const TermsView = () => `
 `;
 
 const HomeView = () => `
-  <div class="hero">
-    <img src="/logo.png" alt="Logo" style="height: 80px; margin-bottom: 2rem;">
-    <h2>Empower Your Digital Journey</h2>
-    <p style="font-size: 1.2rem; color: var(--text-dim); max-width: 600px; margin: 0 auto 2rem;">
-      The ultimate platform to master digital skills and build a sustainable affiliate income.
-    </p>
-    <button class="btn btn-primary" data-route="signup">Start Your Journey</button>
-  </div>
   ${PackagesSection()}
 `;
 
