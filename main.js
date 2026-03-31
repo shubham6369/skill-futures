@@ -2178,31 +2178,8 @@ const AuthView = (type) => `
 `;
 
 const SignupView = () => `
-  <div class="signup-page-wrapper animate-fade">
-    <div class="signup-visual">
-      <div class="signup-visual-content">
-        <h1>Start Your Digital Journey Today 🚀</h1>
-        <div class="signup-features">
-          <div class="signup-feature-item">
-            <i class="fas fa-check"></i>
-            <span>Access to 50+ Premium Courses</span>
-          </div>
-          <div class="signup-feature-item">
-            <i class="fas fa-check"></i>
-            <span>Daily Live Mentorship Sessions</span>
-          </div>
-          <div class="signup-feature-item">
-            <i class="fas fa-check"></i>
-            <span>Passive Income Opportunities</span>
-          </div>
-          <div class="signup-feature-item">
-            <i class="fas fa-check"></i>
-            <span>Join 10,000+ Successful Students</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="signup-content-side">
+  <div class="signup-page-wrapper animate-fade" style="justify-content: center; align-items: center; background: #f8fafc;">
+    <div class="signup-content-side" style="flex: initial; width: 100%; max-width: 600px; padding: 2rem;">
       <div class="signup-form-card">
         <h2 class="auth-title">Create Account</h2>
         <p class="auth-subtitle">Fill in your details to get started with Skill Futures.</p>
