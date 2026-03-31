@@ -69,6 +69,7 @@ const AppState = {
   profileTab: 'details',
   isSidebarVisible: true,
   developerMode: true,
+  selectedPackage: null, // Track package selection during onboarding
   loading: {
     leaderboard: false,
     team: false,
@@ -2365,6 +2366,111 @@ const Footer = () => `
   </footer>
 `;
 
+// ─── Select Package Flow ───────────────────────────────────────────────────
+
+const SelectPackageView = () => {
+  const ud = AppState.userData || {};
+  const isReferred = !!ud.referrerId;
+  const discount = AppState.commissionSettings.referralDiscount || 100;
+
+  const packages = [
+    { id: 'grow', name: 'Grow', badge: 'Best for Beginners', price: 599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
+    { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 1299, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
+    { id: 'finance', name: 'Finance', badge: 'Financial Mastery', price: 2499, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
+    { id: 'prime', name: 'Prime', badge: 'High-Income Skills', price: 3999, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
+    { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 4999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
+  ];
+
+  // Default to Finance if nothing selected or first time
+  if (!AppState.selectedPackage) {
+    AppState.selectedPackage = packages.find(p => p.id === 'finance');
+  }
+
+  const p = AppState.selectedPackage;
+  const finalPrice = isReferred ? p.price - discount : p.price;
+
+  return `
+    <div class="select-package-page animate-fade" style="min-height: 100vh; background: #f8fafc; padding: 2rem; display: flex; align-items: center; justify-content: center;">
+      <div class="onboarding-card" style="width: 100%; max-width: 900px; background: white; border-radius: 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); overflow: hidden; display: grid; grid-template-columns: 1.2fr 1fr; border: 1px solid #e2e8f0;">
+        
+        <!-- Left Side: Selection -->
+        <div style="padding: 3.5rem; border-right: 1px solid #f1f5f9;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 2rem;">
+            <img src="/logo-new.png" alt="Skill Futures" style="height: 45px;">
+          </div>
+          
+          <h1 style="font-size: 2.25rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem; line-height: 1.2;">Select Your Journey 🚀</h1>
+          <p style="color: #64748b; font-size: 1.05rem; line-height: 1.6; margin-bottom: 2.5rem;">Choose the package that fits your goals. You can always upgrade later as you grow.</p>
+          
+          <div class="form-field">
+            <label class="form-label" style="font-weight: 700; color: #1e293b; margin-bottom: 0.75rem; display: block;">Choose Package</label>
+            <div class="custom-select-wrapper" style="position: relative;">
+              <select id="packageDropdown" class="auth-input" style="appearance: none; padding-right: 3rem; cursor: pointer; border-width: 2px; font-weight: 700; height: 60px; font-size: 1.1rem;">
+                ${packages.map(pkg => `
+                  <option value="${pkg.id}" ${AppState.selectedPackage.id === pkg.id ? 'selected' : ''}>
+                    ${pkg.name} Package — ₹${isReferred ? pkg.price - discount : pkg.price}
+                  </option>
+                `).join('')}
+              </select>
+              <i class="fas fa-chevron-down" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #4338ca;"></i>
+            </div>
+          </div>
+
+          <div style="margin-top: 3rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+              <div>
+                <span style="color: #64748b; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Selected Plan</span>
+                <h3 style="margin: 4px 0 0; font-size: 1.5rem; color: #1e293b; font-weight: 800;">${p.name} Package</h3>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 2.25rem; font-weight: 900; color: #4338ca;">₹${finalPrice}</div>
+                ${isReferred ? `<div style="font-size: 0.85rem; color: #10b981; font-weight: 700;">Special Referral Discount Applied</div>` : ''}
+              </div>
+            </div>
+
+            <button id="proceedToPaymentBtn" class="btn-auth" style="width: 100%; height: 65px; font-size: 1.15rem; box-shadow: 0 10px 25px rgba(67, 56, 202, 0.25);">
+              Proceed to Payment <i class="fas fa-credit-card" style="margin-left: 10px;"></i>
+            </button>
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: #94a3b8;">
+              <i class="fas fa-lock"></i> Secure 256-bit SSL Encrypted Payment
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Side: Details -->
+        <div style="background: #f8fafc; padding: 3.5rem; display: flex; flex-direction: column;">
+          <div style="background: white; padding: 6px 16px; border-radius: 50px; display: inline-block; font-size: 0.75rem; font-weight: 800; color: #4338ca; border: 1px solid #e0e7ff; margin-bottom: 1.5rem; align-self: flex-start;">
+            ${p.badge}
+          </div>
+          
+          <h4 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 2rem;">What's included:</h4>
+          
+          <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 1.25rem; flex-grow: 1;">
+            ${p.features.map(f => `
+              <li style="display: flex; align-items: center; gap: 14px; font-weight: 600; color: #475569; font-size: 1.05rem;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <i class="fas fa-check" style="font-size: 0.7rem;"></i>
+                </div>
+                ${f}
+              </li>
+            `).join('')}
+          </ul>
+
+          <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+             <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 50px; height: 50px; border-radius: 12px; background: white; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🔥</div>
+                <div>
+                   <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-weight: 600;">Active Learners</p>
+                   <p style="margin: 0; font-size: 1rem; color: #1e293b; font-weight: 800;">15,000+ Students</p>
+                </div>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
 // ─── Core Orchestration ──────────────────────────────────────────────────────
 
 const render = () => {
@@ -2396,6 +2502,7 @@ const render = () => {
       case 'disclaimer': content = DisclaimerView(); break;
       case 'terms': content = TermsView(); break;
       case 'upgrade': content = UpgradeView(); break;
+      case 'select-package': content = SelectPackageView(); break;
       case 'admin-dashboard': content = AdminDashboardView(); break;
       case 'admin-users': content = AdminUsersView(); break;
       case 'admin-courses': content = AdminCoursesView(); break;
@@ -2475,6 +2582,14 @@ const render = () => {
       app.innerHTML = `
         ${AdminModal ? AdminModal() : ''}
         ${AdminLayout(content)}
+      `;
+    } else if (AppState.view === 'select-package') {
+      // Full screen onboarding without sidebar
+      app.innerHTML = `
+        ${WelcomeModal ? WelcomeModal() : ''}
+        <div id="main-view" style="width: 100%; height: 100vh; overflow-y: auto; background: #f8fafc;">
+          ${content}
+        </div>
       `;
     } else {
       app.innerHTML = `
@@ -2582,6 +2697,30 @@ const attachEvents = () => {
   document.querySelectorAll('.btn-google').forEach(btn => {
     btn.onclick = signInWithGoogle;
   });
+
+  // Package Selection Events
+  const pkgDropdown = document.querySelector('#packageDropdown');
+  if (pkgDropdown) {
+    pkgDropdown.onchange = (e) => {
+      const packages = [
+        { id: 'grow', name: 'Grow', badge: 'Best for Beginners', price: 599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
+        { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 1299, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
+        { id: 'finance', name: 'Finance', badge: 'Financial Mastery', price: 2499, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
+        { id: 'prime', name: 'Prime', badge: 'High-Income Skills', price: 3999, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
+        { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 4999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
+      ];
+      AppState.selectedPackage = packages.find(p => p.id === e.target.value);
+      render();
+    };
+  }
+
+  const proceedBtn = document.querySelector('#proceedToPaymentBtn');
+  if (proceedBtn) {
+    proceedBtn.onclick = () => {
+      const p = AppState.selectedPackage;
+      alert(`🚀 Redirecting to Payment Gateway for ${p.name} Package...\nTotal Amount: ₹${AppState.userData.referrerId ? p.price - (AppState.commissionSettings.referralDiscount || 100) : p.price}`);
+    };
+  }
 
   const signupForm = document.querySelector('#signupForm');
   if (signupForm) {
@@ -2795,7 +2934,12 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     fetchUserData(user.uid);
     if (['home', 'login', 'signup'].includes(AppState.view)) {
-      AppState.view = 'dashboard';
+      // Enforce package selection
+      if (!AppState.userData || !AppState.userData.package) {
+        AppState.view = 'select-package';
+      } else {
+        AppState.view = 'dashboard';
+      }
       
       // Check if we should show the welcome modal
       const hideUntil = localStorage.getItem('hideWelcomeModalUntil');
