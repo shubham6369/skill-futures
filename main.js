@@ -2237,7 +2237,7 @@ const AuthView = (type) => `
       </div>
 
       <button class="btn-google" id="googleSignInBtn">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="Google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
         Continue with Google
       </button>
       
@@ -2290,7 +2290,7 @@ const SignupView = () => `
         </div>
 
         <button class="btn-google" id="googleSignInBtn">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="Google">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
           Sign up with Google
         </button>
         
