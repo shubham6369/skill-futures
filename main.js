@@ -2171,7 +2171,84 @@ const AuthView = (type) => `
       </button>
       
       <div class="auth-footer">
-        ${type === 'login' ? `Don't have an account? <span id="toSignUp" style="color: #5e5ce6; font-weight: 700; cursor: pointer;">Sign Up</span>` : `Already have an account? <span id="toSignIn" style="color: #5e5ce6; font-weight: 700; cursor: pointer;">Login</span>`}
+        ${type === 'login' ? `Don't have an account? <span data-route="signup" style="color: #4338ca; font-weight: 700; cursor: pointer;">Sign Up</span>` : `Already have an account? <span data-route="login" style="color: #4338ca; font-weight: 700; cursor: pointer;">Login</span>`}
+      </div>
+    </div>
+  </div>
+`;
+
+const SignupView = () => `
+  <div class="signup-page-wrapper animate-fade">
+    <div class="signup-visual">
+      <div class="signup-visual-content">
+        <h1>Start Your Digital Journey Today 🚀</h1>
+        <div class="signup-features">
+          <div class="signup-feature-item">
+            <i class="fas fa-check"></i>
+            <span>Access to 50+ Premium Courses</span>
+          </div>
+          <div class="signup-feature-item">
+            <i class="fas fa-check"></i>
+            <span>Daily Live Mentorship Sessions</span>
+          </div>
+          <div class="signup-feature-item">
+            <i class="fas fa-check"></i>
+            <span>Passive Income Opportunities</span>
+          </div>
+          <div class="signup-feature-item">
+            <i class="fas fa-check"></i>
+            <span>Join 10,000+ Successful Students</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="signup-content-side">
+      <div class="signup-form-card">
+        <h2 class="auth-title">Create Account</h2>
+        <p class="auth-subtitle">Fill in your details to get started with Skill Futures.</p>
+        
+        <form id="signupForm">
+          <div class="form-field">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="signupName" class="auth-input" placeholder="Enter your full name" required>
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="signupEmail" class="auth-input" placeholder="name@example.com" required>
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label">Create Password</label>
+            <div class="password-container">
+              <input type="password" id="signupPassword" class="auth-input" placeholder="Min. 8 characters" required>
+              <i class="fas fa-eye visibility-toggle" onclick="const p = document.getElementById('signupPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.classList.toggle('fa-eye'); this.classList.toggle('fa-eye-slash');"></i>
+            </div>
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label">Referral Code (Optional)</label>
+            <input type="text" id="signupReferral" class="auth-input" placeholder="Referral Code" value="${sessionStorage.getItem('referralCode') || ''}">
+            ${sessionStorage.getItem('referralCode') ? '<p style="font-size: 0.85rem; color: #16a34a; font-weight: 700; margin-top: 8px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-check-circle"></i> Referral Applied Successfully!</p>' : ''}
+          </div>
+          
+          <button type="submit" class="btn-auth">
+            Create My Account <i class="fas fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <div class="auth-divider">
+          <span>OR CONTINUE WITH</span>
+        </div>
+
+        <button class="btn-google" id="googleSignInBtn">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="Google">
+          Sign up with Google
+        </button>
+        
+        <div class="auth-footer" style="text-align: left; margin-top: 2rem;">
+          Already have an account? <span data-route="login" style="color: #4338ca; font-weight: 800; cursor: pointer;">Sign In</span>
+        </div>
       </div>
     </div>
   </div>
@@ -2329,7 +2406,7 @@ const render = () => {
             </div>
           </section>`; break;
       default:
-        if (['reports', 'offers', 'earning-target', 'create-account'].includes(AppState.view)) {
+        if (['reports', 'offers', 'earning-target'].includes(AppState.view)) {
           content = `
             <section class="main-content animate-fade-up">
               <h1>${AppState.view.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}</h1>
@@ -2392,7 +2469,7 @@ const render = () => {
         AppState.view === 'refund-policy' ? RefundPolicyView() :
         AppState.view === 'disclaimer' ? DisclaimerView() :
         AppState.view === 'terms' ? TermsView() :
-        AppState.view === 'login' ? AuthView('login') : AuthView('signup')
+        AppState.view === 'login' ? AuthView('login') : SignupView()
       }</main>
       ${Footer()}
     `;
