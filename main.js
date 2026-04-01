@@ -1791,11 +1791,11 @@ const UpgradeView = () => {
   const discount = AppState.commissionSettings.referralDiscount || 100;
   
   const packages = [
-    { name: 'Grow', badge: 'Best for Beginners', img: '/basic-package.png', price: 599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
-    { name: 'Creator', badge: 'Creator Skills', img: '/advance-package.png', price: 1299, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
-    { name: 'Finance', badge: 'Financial Mastery', img: '/creator-package.png', price: 2499, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
-    { name: 'Prime', badge: 'High-Income Skills', img: '/global-package.png', price: 3999, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
-    { name: 'Premium', badge: 'Elite Pro', img: '/premium-package.png', price: 4999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
+    { name: 'Basic', badge: 'Best for Beginners', img: '/basic-package.png', price: 1599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
+    { name: 'Advance', badge: 'Financial Mastery', img: '/advance-package.png', price: 2399, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
+    { name: 'Creator', badge: 'Creator Skills', img: '/creator-package.png', price: 4310, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
+    { name: 'Global', badge: 'High-Income Skills', img: '/global-package.png', price: 7260, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
+    { name: 'Premium', badge: 'Elite Pro', img: '/premium-package.png', price: 9999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
   ];
 
   return `
@@ -2162,34 +2162,34 @@ const PackagesSection = () => `
     <div class="package-grid">
       <div class="package-card" data-route="signup">
         <div class="package-badge">Best for Beginners</div>
-        <img src="/basic-package.png" alt="Grow Package">
+        <img src="/basic-package.png" alt="Basic Package">
         <div class="package-info">
-          <h3>Grow Package</h3>
-          <p>₹599</p>
-        </div>
-      </div>
-      <div class="package-card" data-route="signup">
-        <div class="package-badge">Creator Skills</div>
-        <img src="/advance-package.png" alt="Creator Package">
-        <div class="package-info">
-          <h3>Creator Package</h3>
-          <p>₹1299</p>
+          <h3>Basic Package</h3>
+          <p>₹1599</p>
         </div>
       </div>
       <div class="package-card" data-route="signup">
         <div class="package-badge">Most Popular</div>
-        <img src="/creator-package.png" alt="Finance Package">
+        <img src="/advance-package.png" alt="Advance Package">
         <div class="package-info">
-          <h3>Finance Package</h3>
-          <p>₹2499</p>
+          <h3>Advance Package</h3>
+          <p>₹2399</p>
+        </div>
+      </div>
+      <div class="package-card" data-route="signup">
+        <div class="package-badge">Creator Skills</div>
+        <img src="/creator-package.png" alt="Creator Package">
+        <div class="package-info">
+          <h3>Creator Package</h3>
+          <p>₹4310</p>
         </div>
       </div>
       <div class="package-card" data-route="signup">
         <div class="package-badge">Global Access</div>
-        <img src="/global-package.png" alt="Prime Package">
+        <img src="/global-package.png" alt="Global Package">
         <div class="package-info">
-          <h3>Prime Package</h3>
-          <p>₹3999</p>
+          <h3>Global Package</h3>
+          <p>₹7260</p>
         </div>
       </div>
       <div class="package-card" data-route="signup">
@@ -2197,7 +2197,7 @@ const PackagesSection = () => `
         <img src="/premium-package.png" alt="Premium Package">
         <div class="package-info">
           <h3>Premium Package</h3>
-          <p>₹4999</p>
+          <p>₹9999</p>
         </div>
       </div>
     </div>
@@ -2345,10 +2345,10 @@ const Footer = () => `
       <div class="footer-col">
         <h3>Course/Packages</h3>
         <ul class="footer-links">
-          <li><a>Grow package</a></li>
+          <li><a>Basic package</a></li>
+          <li><a>Advance Package</a></li>
           <li><a>Creator package</a></li>
-          <li><a>Finance Package</a></li>
-          <li><a>Prime Package</a></li>
+          <li><a>Global Package</a></li>
           <li><a>Premium Package</a></li>
         </ul>
       </div>
@@ -2392,16 +2392,16 @@ const SelectPackageView = () => {
   const discount = AppState.commissionSettings.referralDiscount || 100;
 
   const packages = [
-    { id: 'grow', name: 'Grow', badge: 'Best for Beginners', price: 599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
-    { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 1299, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
-    { id: 'finance', name: 'Finance', badge: 'Financial Mastery', price: 2499, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
-    { id: 'prime', name: 'Prime', badge: 'High-Income Skills', price: 3999, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
-    { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 4999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
+    { id: 'grow', name: 'Basic', badge: 'Best for Beginners', price: 1599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
+    { id: 'advance', name: 'Advance', badge: 'Financial Mastery', price: 2399, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
+    { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 4310, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
+    { id: 'global', name: 'Global', badge: 'High-Income Skills', price: 7260, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
+    { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 9999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
   ];
 
   // Default to Finance if nothing selected or first time
   if (!AppState.selectedPackage) {
-    AppState.selectedPackage = packages.find(p => p.id === 'finance');
+    AppState.selectedPackage = packages.find(p => p.id === 'advance');
   }
 
   const p = AppState.selectedPackage;
@@ -2721,11 +2721,11 @@ const attachEvents = () => {
   if (pkgDropdown) {
     pkgDropdown.onchange = (e) => {
       const packages = [
-        { id: 'grow', name: 'Grow', badge: 'Best for Beginners', price: 599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
-        { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 1299, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
-        { id: 'finance', name: 'Finance', badge: 'Financial Mastery', price: 2499, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
-        { id: 'prime', name: 'Prime', badge: 'High-Income Skills', price: 3999, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
-        { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 4999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
+        { id: 'grow', name: 'Basic', badge: 'Best for Beginners', price: 1599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
+        { id: 'advance', name: 'Advance', badge: 'Financial Mastery', price: 2399, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
+        { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 4310, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
+        { id: 'global', name: 'Global', badge: 'High-Income Skills', price: 7260, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
+        { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 9999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
       ];
       AppState.selectedPackage = packages.find(p => p.id === e.target.value);
       render();
