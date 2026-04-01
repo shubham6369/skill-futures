@@ -16,16 +16,28 @@
   --grad-industry: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* ─── Shadow System ─── */
-  --shadow-xs:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm:   0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
-  --shadow-md:   0 10px 25px -3px rgba(0,0,0,0.08), 0 4px 10px -4px rgba(0,0,0,0.05);
-  --shadow-lg:   0 20px 40px -8px rgba(0,0,0,0.10), 0 8px 16px -8px rgba(0,0,0,0.06);
-  --shadow-xl:   0 30px 60px -12px rgba(0,0,0,0.14), 0 18px 36px -18px rgba(0,0,0,0.08);
-  --shadow-2xl:  0 45px 80px -14px rgba(0,0,0,0.18);
-  --shadow-glow: 0 0 0 3px rgba(14,165,233,0.15), 0 8px 24px rgba(14,165,233,0.18);
-  --shadow-indigo: 0 8px 30px rgba(67,56,202,0.22);
-  --shadow-pop:  0 2px 6px rgba(0,0,0,0.06);
+  /* ─── Shadow System (+20% intensity) ─── */
+  --shadow-xs:     0 1px 4px rgba(0,0,0,0.07),  0 1px 3px rgba(0,0,0,0.05);
+  --shadow-sm:     0 5px 8px -1px rgba(0,0,0,0.09), 0 3px 5px -2px rgba(0,0,0,0.06);
+  --shadow-md:     0 12px 30px -3px rgba(0,0,0,0.10), 0 5px 12px -4px rgba(0,0,0,0.06);
+  --shadow-lg:     0 24px 48px -8px rgba(0,0,0,0.12), 0 10px 20px -8px rgba(0,0,0,0.08);
+  --shadow-xl:     0 36px 72px -12px rgba(0,0,0,0.17), 0 22px 44px -18px rgba(0,0,0,0.10);
+  --shadow-2xl:    0 54px 96px -14px rgba(0,0,0,0.22), 0 28px 56px -20px rgba(0,0,0,0.12);
+  --shadow-glow:   0 0 0 4px rgba(14,165,233,0.18), 0 10px 29px rgba(14,165,233,0.22);
+  --shadow-indigo: 0 10px 36px rgba(67,56,202,0.26), 0 4px 12px rgba(67,56,202,0.14);
+  --shadow-pop:    0 3px 8px rgba(0,0,0,0.08),  0 1px 3px rgba(0,0,0,0.05);
+
+  /* ─── Extended Shadow Palette ─── */
+  --shadow-float:       0 16px 40px -6px rgba(0,0,0,0.14), 0 6px 16px -4px rgba(0,0,0,0.08);
+  --shadow-green:       0 8px 28px rgba(22,163,74,0.28),   0 3px 10px rgba(22,163,74,0.14);
+  --shadow-sky:         0 8px 28px rgba(14,165,233,0.28),  0 3px 10px rgba(14,165,233,0.14);
+  --shadow-pink:        0 8px 28px rgba(219,39,119,0.26),  0 3px 10px rgba(219,39,119,0.12);
+  --shadow-amber:       0 8px 28px rgba(217,119,6,0.26),   0 3px 10px rgba(217,119,6,0.12);
+  --shadow-deep:        0 40px 80px rgba(15,23,42,0.16),   0 16px 32px rgba(15,23,42,0.08);
+  --shadow-inset-focus: inset 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-text-sm:     0 1px 3px rgba(0,0,0,0.20);
+  --shadow-text-md:     0 2px 6px rgba(0,0,0,0.28);
+
   --popup-transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s cubic-bezier(0.4,0,0.2,1);
 }
 
@@ -328,9 +340,9 @@ body {
 }
 
 .metric-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: var(--shadow-xl);
-  filter: brightness(1.06);
+  transform: translateY(-10px) scale(1.04);
+  box-shadow: var(--shadow-2xl);
+  filter: brightness(1.08);
 }
 
 .metric-info h3 {
@@ -355,13 +367,20 @@ body {
   font-size: 1.5rem;
 }
 
-/* Metric Colors */
-.card-today { background: var(--grad-today); }
-.card-weekly { background: var(--grad-weekly); }
-.card-monthly { background: var(--grad-monthly); }
-.card-alltime { background: var(--grad-alltime); }
-.card-passive { background: var(--grad-passive); }
-.card-industry { background: var(--grad-industry); }
+/* Metric Colors + colored per-card shadows */
+.card-today   { background: var(--grad-today);    box-shadow: var(--shadow-sky);    }
+.card-weekly  { background: var(--grad-weekly);   box-shadow: var(--shadow-green);  }
+.card-monthly { background: var(--grad-monthly);  box-shadow: var(--shadow-amber);  }
+.card-alltime { background: var(--grad-alltime);  box-shadow: var(--shadow-indigo); }
+.card-passive { background: var(--grad-passive);  box-shadow: var(--shadow-pink);   }
+.card-industry{ background: var(--grad-industry); box-shadow: var(--shadow-md);     }
+
+.card-today:hover   { box-shadow: 0 16px 44px rgba(14,165,233,0.40),  0 6px 18px rgba(14,165,233,0.22); }
+.card-weekly:hover  { box-shadow: 0 16px 44px rgba(22,163,74,0.40),   0 6px 18px rgba(22,163,74,0.22);  }
+.card-monthly:hover { box-shadow: 0 16px 44px rgba(217,119,6,0.40),   0 6px 18px rgba(217,119,6,0.22);  }
+.card-alltime:hover { box-shadow: 0 16px 44px rgba(67,56,202,0.42),   0 6px 18px rgba(67,56,202,0.24);  }
+.card-passive:hover { box-shadow: 0 16px 44px rgba(219,39,119,0.40),  0 6px 18px rgba(219,39,119,0.22); }
+.card-industry:hover{ box-shadow: var(--shadow-xl); }
 
 /* ─── Chart Section ───────────────────────────────────────────────────────── */
 
@@ -2407,3 +2426,219 @@ input[disabled]:hover,
     filter: none;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SHADOW INTENSITY +20% — EXTENDED EFFECTS
+   All inline values boosted 20% beyond the variable defaults
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Text Shadows on Major Headings ─── */
+h1, .auth-title, .signup-visual-content h1 {
+  text-shadow: var(--shadow-text-sm);
+}
+
+.admin-section-header h1 {
+  text-shadow: 0 2px 8px rgba(15,23,42,0.12);
+}
+
+.metric-info h3 {
+  text-shadow: 0 1px 5px rgba(0,0,0,0.22);
+}
+
+/* ─── Stat Numbers ─── */
+.admin-card-metric .value {
+  text-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
+
+/* ─── Drop-Shadow on Icons ─── */
+.metric-icon {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.16), 0 1px 4px rgba(0,0,0,0.10);
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+}
+.metric-card:hover .metric-icon {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.12);
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.18));
+  transform: scale(1.18) rotate(-10deg);
+}
+
+/* ─── Sidebar Stronger Shadow ─── */
+.sidebar {
+  box-shadow: 6px 0 32px rgba(0,0,0,0.10), 2px 0 8px rgba(0,0,0,0.05);
+}
+
+/* ─── Navbar / Topbar Shadow ─── */
+nav, .navbar, header {
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* ─── Deeper Inset on Inputs ─── */
+.auth-input:focus,
+.form-input-styled:focus {
+  box-shadow: 0 0 0 4px rgba(79,70,229,0.14),
+              inset 0 2px 8px rgba(0,0,0,0.07),
+              0 6px 16px rgba(0,0,0,0.06);
+}
+
+/* ─── Stronger Button Base Shadow (inline override) ─── */
+.btn-auth {
+  box-shadow: 0 5px 20px rgba(94,92,230,0.34), 0 2px 6px rgba(94,92,230,0.18);
+}
+.btn-auth:hover {
+  box-shadow: 0 14px 36px rgba(94,92,230,0.46), 0 4px 12px rgba(94,92,230,0.22);
+}
+
+.btn-save {
+  box-shadow: 0 5px 20px rgba(79,70,229,0.34), 0 2px 6px rgba(79,70,229,0.18);
+}
+.btn-save:hover {
+  box-shadow: 0 10px 30px rgba(79,70,229,0.46), 0 4px 12px rgba(79,70,229,0.22);
+}
+
+.btn-start-course {
+  box-shadow: 0 5px 18px rgba(67,56,202,0.32), 0 2px 6px rgba(67,56,202,0.16);
+}
+.btn-start-course:hover {
+  box-shadow: 0 12px 30px rgba(67,56,202,0.44), 0 4px 12px rgba(67,56,202,0.20);
+}
+
+.btn-withdraw {
+  box-shadow: 0 5px 18px rgba(79,70,229,0.34), 0 2px 6px rgba(79,70,229,0.16);
+}
+.btn-withdraw:hover {
+  box-shadow: 0 12px 28px rgba(79,70,229,0.48), 0 4px 10px rgba(79,70,229,0.22);
+}
+
+.btn-google {
+  box-shadow: 0 3px 10px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+}
+.btn-google:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14), 0 3px 8px rgba(0,0,0,0.08) !important;
+}
+
+/* ─── Package Badge Stronger Shadow ─── */
+.package-badge {
+  box-shadow: 0 5px 14px rgba(67,56,202,0.38);
+}
+
+/* ─── Play Icon Deeper Shadow ─── */
+.play-icon {
+  box-shadow: 0 12px 30px rgba(0,0,0,0.26), 0 4px 10px rgba(0,0,0,0.14);
+}
+
+/* ─── Profile Image Large Stronger Shadow ─── */
+.profile-image-large {
+  box-shadow: 0 12px 30px rgba(0,0,0,0.14), 0 4px 10px rgba(0,0,0,0.08);
+}
+.profile-image-large:hover {
+  box-shadow: 0 20px 50px rgba(0,0,0,0.22), 0 6px 16px rgba(0,0,0,0.12);
+}
+
+/* ─── Modal Stronger Presence ─── */
+.modal-container {
+  box-shadow: 0 65px 115px -16px rgba(0,0,0,0.26),
+              0 30px 60px -20px rgba(0,0,0,0.16);
+}
+
+/* ─── Auth Card Ultra Depth ─── */
+.auth-card {
+  box-shadow: 0 43px 87px -14px rgba(0,0,0,0.19),
+              0 22px 44px -18px rgba(0,0,0,0.12),
+              0 0 0 1px rgba(0,0,0,0.03);
+}
+.auth-card:hover {
+  box-shadow: 0 65px 120px -14px rgba(0,0,0,0.24),
+              0 30px 60px -18px rgba(0,0,0,0.14);
+}
+
+/* ─── Wallet Mini Cards ─── */
+.wallet-mini-card:hover {
+  box-shadow: 0 29px 58px -8px rgba(99,102,241,0.22),
+              0 12px 24px -6px rgba(99,102,241,0.14);
+}
+
+/* ─── Training Card Deeper ─── */
+.training-card:hover {
+  box-shadow: 0 65px 96px -14px rgba(0,0,0,0.22),
+              0 32px 64px -20px rgba(0,0,0,0.12);
+}
+
+/* ─── Admin Table Container ─── */
+.admin-table-container:hover {
+  box-shadow: 0 29px 58px -8px rgba(0,0,0,0.13),
+              0 12px 24px -6px rgba(0,0,0,0.08);
+}
+
+/* ─── Admin Metric Card Deeper ─── */
+.admin-card-metric:hover {
+  box-shadow: 0 36px 72px -12px rgba(0,0,0,0.17),
+              0 14px 28px -10px rgba(0,0,0,0.10),
+              0 0 0 2px rgba(14,165,233,0.10);
+}
+
+/* ─── Course & Onboarding Cards ─── */
+.course-card-v2:hover {
+  box-shadow: 0 36px 72px -12px rgba(0,0,0,0.17),
+              0 14px 28px -10px rgba(99,102,241,0.10);
+}
+
+.onboarding-card:hover {
+  box-shadow: 0 54px 96px -14px rgba(0,0,0,0.22),
+              0 28px 56px -20px rgba(0,0,0,0.12);
+}
+
+/* ─── Footer Social Links ─── */
+.footer-socials a:hover {
+  box-shadow: 0 10px 25px rgba(14,165,233,0.50),
+              0 3px 8px rgba(14,165,233,0.24);
+}
+
+/* ─── Sidebar Item Active — deeper glow ─── */
+.sidebar-item.active {
+  box-shadow: 0 8px 24px rgba(67,56,202,0.36),
+              0 2px 8px rgba(67,56,202,0.18),
+              inset 3px 0 0 #fff;
+}
+
+/* ─── Floating Toggle ─── */
+.floating-toggle {
+  box-shadow: 0 12px 30px rgba(0,0,0,0.14),
+              0 4px 10px rgba(0,0,0,0.08) !important;
+}
+.floating-toggle:hover {
+  box-shadow: 0 20px 44px rgba(0,0,0,0.20),
+              0 6px 14px rgba(0,0,0,0.10) !important;
+}
+
+/* ─── Chart Container ─── */
+.chart-container:hover {
+  box-shadow: 0 29px 58px -8px rgba(0,0,0,0.12),
+              0 10px 20px -6px rgba(99,102,241,0.08);
+}
+
+/* ─── Admin Action Buttons ─── */
+.admin-action-btn:hover {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.14), 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* ─── Package Card ─── */
+.package-card:hover {
+  box-shadow: 0 14px 43px rgba(67,56,202,0.31),
+              0 5px 14px rgba(67,56,202,0.17);
+}
+
+/* ─── Signup Feature Items ─── */
+.signup-feature-item i {
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+}
+
+/* ─── Drop shadows on SVG/icon elements ─── */
+.sidebar-logo img,
+.sidebar-logo svg {
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,0.18));
+}
+
+.copy-btn:hover {
+  filter: drop-shadow(0 2px 6px rgba(99,102,241,0.5));
+}
+
