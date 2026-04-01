@@ -268,9 +268,16 @@ body {
 }
 
 .sidebar-item:hover {
-  background: #f8fafc;
-  transform: translateX(5px);
+  background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+  color: white;
+  transform: translateX(4px);
+  box-shadow: 0 4px 18px rgba(67,56,202,0.30);
 }
+
+.sidebar-item:hover i {
+  color: white;
+}
+
 
 .sidebar-item.active {
   background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
@@ -2265,14 +2272,19 @@ body {
   transition: var(--popup-transition), background 0.2s ease, color 0.2s ease;
 }
 .sidebar-item:hover {
-  background: #f0f4ff;
-  transform: translateX(6px);
-  box-shadow: inset 3px 0 0 #6366f1, var(--shadow-sm);
+  background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+  color: white;
+  transform: translateX(4px);
+  box-shadow: 0 4px 18px rgba(67,56,202,0.30);
+}
+.sidebar-item:hover i {
+  color: white;
 }
 .sidebar-item.active {
   box-shadow: 0 6px 20px rgba(67,56,202,0.3), inset 3px 0 0 #fff;
   transform: translateX(4px);
 }
+
 
 /* ─── Sidebar Toggle Button ─── */
 .sidebar-toggle-btn {
