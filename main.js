@@ -1329,7 +1329,7 @@ const Sidebar = () => `
     </ul>
     
     <div style="padding: 1.5rem; border-top: 1px solid #f1f5f9; margin-top: auto;">
-      <button id="logoutBtn" style="width: 100%; padding: 0.8rem; border-radius: 10px; background: #fee2e2; color: #ef4444; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+      <button id="logoutBtn" style="width: 100%; padding: 0.8rem; border-radius: 10px; background: #f9a8a8; color: #a81c1c; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
         <i class="fas fa-sign-out-alt"></i> Logout
       </button>
     </div>
