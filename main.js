@@ -2439,9 +2439,6 @@ const Footer = () => `
   <footer class="footer">
     <div class="footer-grid">
       <div class="footer-col" style="flex: 1.5;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem;">
-          <img src="/logo-new.png" alt="Logo" style="height: 60px;"/>
-        </div>
         <div class="footer-socials">
           <a href="#"><i class="fab fa-facebook-f"></i></a>
           <a href="#"><i class="fab fa-instagram"></i></a>
