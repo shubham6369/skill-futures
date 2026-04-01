@@ -1489,25 +1489,49 @@ const TrainingsView = () => `
     <div class="training-grid">
       ${AppState.trainings.map((t, i) => `
         <div class="training-card animate-fade-up stagger-${(i % 6) + 1}">
+
+          <!-- Thumbnail -->
           <div class="training-thumb-container">
             <img src="${t.thumb}" alt="${t.title}" class="training-thumb" loading="lazy">
+
+            <!-- Live badge -->
+            <div class="training-live-badge">
+              <span class="live-dot"></span> Live
+            </div>
+
+            <!-- Play overlay -->
             <div class="play-overlay">
               <div class="play-icon">
                 <i class="fas fa-play"></i>
               </div>
             </div>
+
+            <!-- Slide-up hover info -->
+            <div class="training-hover-info">
+              <div class="hover-label">Exclusive Session</div>
+              <div class="hover-cta">
+                Watch Now <i class="fas fa-arrow-right"></i>
+              </div>
+            </div>
           </div>
+
+          <!-- Card body -->
           <div class="training-info">
             <h3 class="training-title">${t.title}</h3>
             <div class="training-desc">
-              <span>Exclusive Session</span>
-              <span>•</span>
-              <span>HD Mastery</span>
+              <span class="training-desc-tag tag-exclusive">
+                <i class="fas fa-crown" style="font-size:0.6rem;"></i> Exclusive
+              </span>
+              <span class="training-desc-tag tag-hd">
+                <i class="fas fa-film" style="font-size:0.6rem;"></i> HD
+              </span>
             </div>
           </div>
+
         </div>
       `).join('')}
     </div>
+
   </section>
 `;
 
