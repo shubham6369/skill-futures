@@ -757,6 +757,89 @@ const AdminModal = () => {
   return '';
 };
 
+/* ─── Basic Package Detail Modal ─── */
+const BasicPackageDetailModal = () => `
+  <div id="basicDetailModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.7); z-index:9999; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(6px);" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:#fff; border-radius:24px; max-width:760px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 50px 100px rgba(0,0,0,0.30); position:relative; animation:slideUpFade 0.35s ease;">
+
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#4338ca 0%,#6366f1 100%); padding:2rem 2.5rem; border-radius:24px 24px 0 0; position:relative;">
+        <button onclick="document.getElementById('basicDetailModal').style.display='none'" style="position:absolute; top:1.2rem; right:1.5rem; background:rgba(255,255,255,0.2); border:none; color:white; width:36px; height:36px; border-radius:50%; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
+        <div style="font-size:0.8rem; font-weight:700; color:#c7d2fe; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.5rem;">Basic Package</div>
+        <h2 style="color:white; font-size:1.8rem; font-weight:900; margin:0;">📚 Learning Modules</h2>
+        <p style="color:#c7d2fe; margin:0.5rem 0 0; font-size:0.95rem;">Everything included in your Basic package</p>
+      </div>
+
+      <!-- Modules -->
+      <div style="padding:2rem 2.5rem; display:flex; flex-direction:column; gap:1.75rem;">
+
+        <!-- Module 1 -->
+        <div style="border:1.5px solid #e0e7ff; border-radius:16px; overflow:hidden;">
+          <div style="background:#eef2ff; padding:1.2rem 1.5rem; display:flex; align-items:center; gap:14px;">
+            <div style="width:42px; height:42px; background:linear-gradient(135deg,#4338ca,#6366f1); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">1️⃣</div>
+            <div>
+              <div style="font-size:0.72rem; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px;">Module 1</div>
+              <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:#1e1b4b;">🔹 Affiliate Marketing System</h3>
+            </div>
+          </div>
+          <div style="padding:1.25rem 1.5rem; color:#475569; font-size:0.95rem; line-height:1.7;">
+            <p style="margin:0 0 0.6rem;">Gain a clear and practical understanding of how digital products are promoted and monetized in today's online ecosystem.</p>
+            <p style="margin:0;">Learn structured and beginner-friendly methods to generate consistent online income and build a strong earning foundation.</p>
+          </div>
+        </div>
+
+        <!-- Module 2 -->
+        <div style="border:1.5px solid #e0e7ff; border-radius:16px; overflow:hidden;">
+          <div style="background:#eef2ff; padding:1.2rem 1.5rem; display:flex; align-items:center; gap:14px;">
+            <div style="width:42px; height:42px; background:linear-gradient(135deg,#4338ca,#6366f1); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">2️⃣</div>
+            <div>
+              <div style="font-size:0.72rem; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px;">Module 2</div>
+              <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:#1e1b4b;">🗣️ English Speaking Course</h3>
+            </div>
+          </div>
+          <div style="padding:1.25rem 1.5rem; color:#475569; font-size:0.95rem; line-height:1.7;">
+            <p style="margin:0 0 0.8rem; font-weight:600; color:#1e293b;">Speak Confidently &amp; Communicate Like a Pro!</p>
+            <p style="margin:0 0 1rem;">Enhance your English speaking skills and communicate effectively in professional and personal environments. Perfect for beginners who want to speak fluently, gain confidence, and leave a lasting impression.</p>
+            <div style="font-weight:700; color:#1e293b; margin-bottom:0.6rem; font-size:0.9rem;">What You Will Learn:</div>
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.5rem;">
+              ${['Basic English conversation skills','Daily communication phrases and practice','Improve clarity, pronunciation, and confidence','Professional interaction tips for real-life scenarios'].map(item => `
+              <li style="display:flex; align-items:flex-start; gap:10px; font-size:0.9rem;">
+                <span style="color:#6366f1; font-size:1rem; flex-shrink:0;">✅</span> ${item}
+              </li>`).join('')}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Module 3 -->
+        <div style="border:1.5px solid #e0e7ff; border-radius:16px; overflow:hidden;">
+          <div style="background:#eef2ff; padding:1.2rem 1.5rem; display:flex; align-items:center; gap:14px;">
+            <div style="width:42px; height:42px; background:linear-gradient(135deg,#4338ca,#6366f1); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">3️⃣</div>
+            <div>
+              <div style="font-size:0.72rem; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px;">Module 3</div>
+              <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:#1e1b4b;">📈 Affiliate Marketing Course</h3>
+            </div>
+          </div>
+          <div style="padding:1.25rem 1.5rem; color:#475569; font-size:0.95rem; line-height:1.7;">
+            <p style="margin:0 0 1rem;">Learn the art of promoting digital products and earning online. This course gives beginners a structured approach to understand affiliate marketing, create campaigns, and generate income. Perfect for anyone who wants to start their online earning journey.</p>
+            <div style="font-weight:700; color:#1e293b; margin-bottom:0.6rem; font-size:0.9rem;">What You Will Learn:</div>
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.5rem;">
+              ${['How affiliate marketing works and how to get started','Practical strategies to promote products online','Steps to generate consistent online income','Build a strong foundation for future digital earnings'].map(item => `
+              <li style="display:flex; align-items:flex-start; gap:10px; font-size:0.9rem;">
+                <span style="color:#6366f1; font-size:1rem; flex-shrink:0;">✅</span> ${item}
+              </li>`).join('')}
+            </ul>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <button class="btn btn-primary" style="width:100%; height:52px; border-radius:14px; font-weight:800; font-size:1rem;" onclick="document.getElementById('basicDetailModal').style.display='none'; alert('Redirecting to secure payment for Basic package...')">
+          Get Basic Package — ₹1599 <i class="fas fa-arrow-right" style="margin-left:8px;"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+`;
+
 const ProfileView = () => {
   const ud = AppState.userData || {};
   const walletBalance = ud.allTimeEarnings - ud.paidEarnings || 0;
@@ -1851,6 +1934,11 @@ const UpgradeView = () => {
                   ${p.features.map(f => `<li style="display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; font-size: 1rem; color: #475569; font-weight: 500;"><i class="fas fa-check-circle" style="color: #6366f1;"></i> ${f}</li>`).join('')}
                 </ul>
                 <button class="btn btn-primary" style="width: 100%; height: 55px; border-radius: 12px; font-weight: 800; font-size: 1rem; transition: all 0.2s;" onclick="alert('Redirecting to secure payment for ${p.name} package...')">Get Started Now <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></button>
+                ${p.name === 'Basic' ? `
+                <button onclick="document.getElementById('basicDetailModal').style.display='flex'" style="width: 100%; height: 46px; margin-top: 0.75rem; border-radius: 12px; border: 2px solid #6366f1; background: transparent; color: #6366f1; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='#eef2ff'" onmouseout="this.style.background='transparent'">
+                  <i class="fas fa-book-open"></i> View Course Details
+                </button>` : ''}
+
               </div>
             </div>
           `;
@@ -2631,6 +2719,7 @@ const render = () => {
     } else {
       app.innerHTML = `
         ${WelcomeModal ? WelcomeModal() : ''}
+        ${BasicPackageDetailModal()}
         <div class="dashboard-container ${!AppState.isSidebarVisible ? 'sidebar-hidden' : ''}">
           ${Sidebar()}
           <div id="main-view" style="flex-grow: 1; overflow-y: auto;">
