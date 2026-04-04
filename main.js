@@ -1295,7 +1295,7 @@ const AdminSidebar = () => `
     <div class="sidebar-logo" style="border-bottom: 1px solid #1e293b;">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="/logo.png" alt="Logo" style="height: 32px; flex-shrink: 0; filter: brightness(0) invert(1);"/>
+          <img src="/logo.png" alt="Logo" style="height: 64px; flex-shrink: 0; filter: brightness(0) invert(1);"/>
         </div>
         <div style="font-size: 0.6rem; color: #94a3b8; font-weight: 600; padding-left: 0px; margin-top: 4px;">"Platform Control Center"</div>
       </div>
@@ -1355,7 +1355,7 @@ const Sidebar = () => `
     <div class="sidebar-logo">
       <div class="logo-content" style="${!AppState.isSidebarVisible ? 'display: none;' : ''}">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="/logo.png" alt="Logo" style="height: 100px; flex-shrink: 0;"/>
+          <img src="/logo.png" alt="Logo" style="height: 200px; flex-shrink: 0;"/>
         </div>
 
       </div>
@@ -2518,7 +2518,7 @@ const SelectPackageView = () => {
         <!-- Left Side: Selection -->
         <div style="padding: 3.5rem; border-right: 1px solid #f1f5f9;">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 2rem;">
-            <img src="/logo-new.png" alt="Skill Futures" style="height: 45px;">
+            <img src="/logo-new.png" alt="Skill Futures" style="height: 90px;">
           </div>
           
           <h1 style="font-size: 2.25rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem; line-height: 1.2;">Select Your Journey 🚀</h1>
@@ -2747,7 +2747,7 @@ const render = () => {
     app.innerHTML = `
       <header style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border);">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="/logo.png" alt="Logo" style="height: 35px;"/>
+          <img src="/logo.png" alt="Logo" style="height: 70px;"/>
         </div>
         <nav>${AppState.view === 'home' ? `<button class="btn btn-primary" data-route="signup">Join Now</button><button class="btn btn-outline" data-route="login" style="margin-left:1rem;">Login</button>` : ''}</nav>
       </header>
