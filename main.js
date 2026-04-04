@@ -657,8 +657,8 @@ const AdminModal = () => {
               </div>
 
               <div class="form-group" style="margin-bottom: 1rem;">
-                <label>Cover Image URL</label>
-                <input type="url" id="courseImg" class="form-input-styled" value="${data?.img || ''}" required placeholder="https://images.unsplash.com/...">
+                <label>Cover Image URL (Optional)</label>
+                <input type="url" id="courseImg" class="form-input-styled" value="${data?.img || ''}" placeholder="https://images.unsplash.com/...">
               </div>
 
               <div class="form-group" style="margin-bottom: 1rem;">
@@ -1141,7 +1141,7 @@ const AdminCoursesView = () => `
         </div>
       ` : AppState.courses.map(course => `
         <div class="course-card-v2">
-          <img src="${course.img || 'https://via.placeholder.com/300x200?text=SkillFutures'}" class="course-img-v2" alt="${course.title}"/>
+          <img src="${course.img || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}" class="course-img-v2" alt="${course.title}"/>
           <div style="padding: 0.5rem 0.75rem 0.25rem;">
             <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem;">${course.category || 'Premium'}</div>
             <h3 style="margin-bottom: 1.25rem; font-size: 1.1rem; text-align: left;">${course.title}</h3>
@@ -1587,6 +1587,45 @@ const LeaderboardView = () => {
 `;
 };
 
+const CourseListView = () => {
+  return `
+    <section class="main-content animate-fade">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3rem;">
+        <h1>My Courses 📚</h1>
+        <p style="color: #64748b; font-weight: 500;">Your learning journey at a glance</p>
+      </div>
+
+      <div class="course-grid">
+        ${AppState.courses.length === 0 ? `
+          <div style="grid-column: 1/-1;">
+            <div class="empty-state-container">
+              <i class="fas fa-book-open empty-state-icon"></i>
+              <h3>No courses available yet</h3>
+              <p>New courses are being added regularly. Check back soon!</p>
+            </div>
+          </div>
+        ` : AppState.courses.map((course, i) => `
+          <div class="course-card-v2 animate-fade-up stagger-${(i % 6) + 1}" style="cursor: pointer;" onclick="AppState.selectedCourseId='${course.id}'; AppState.view='training'; render();">
+            <img src="${course.img || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}" class="course-img-v2" alt="${course.title}"/>
+            <div style="padding: 1.25rem;">
+              <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem;">${course.category || 'Premium'}</div>
+              <h3 style="margin-bottom: 1.25rem; font-size: 1.1rem; text-align: left; color: #1e293b;">${course.title}</h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
+                  <i class="fas fa-play-circle" style="color: var(--accent); margin-right: 4px;"></i> ${course.lessons?.length || course.totalLessons || 0} Lessons
+                </div>
+                <div style="background: #eef2ff; color: #4338ca; padding: 4px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">
+                  Start Learning
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+};
+
 const TrainingsView = () => `
   <section class="main-content animate-fade">
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3rem;">
@@ -1600,7 +1639,7 @@ const TrainingsView = () => `
 
           <!-- Thumbnail -->
           <div class="training-thumb-container">
-            <img src="${t.thumb}" alt="${t.title}" class="training-thumb" loading="lazy">
+            <img src="${t.thumb || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}" alt="${t.title}" class="training-thumb" loading="lazy">
 
             <!-- Live badge -->
             <div class="training-live-badge">
