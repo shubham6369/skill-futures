@@ -455,6 +455,7 @@ const fetchAdminUsers = async () => {
     AppState.fetched.adminUsers = true;
   } catch (err) {
     console.error("Error fetching users:", err);
+    AppState.fetched.adminUsers = true;
   }
   AppState.loading.adminUsers = false;
   render();
@@ -473,6 +474,7 @@ const fetchAdminSettings = async () => {
     AppState.fetched.adminSettings = true;
   } catch (err) {
     console.error("Error fetching settings:", err);
+    AppState.fetched.adminSettings = true;
   }
   AppState.loading.adminSettings = false;
   render();
@@ -511,6 +513,7 @@ const fetchAdminPayouts = async () => {
     AppState.fetched.adminPayouts = true;
   } catch (err) {
     console.error("Error fetching payouts:", err);
+    AppState.fetched.adminPayouts = true;
   }
   AppState.loading.adminPayouts = false;
   render();
@@ -573,6 +576,8 @@ const fetchAdminNotices = async () => {
     render();
   }, (err) => {
     console.error("Error fetching notices:", err);
+    AppState.fetched.adminNotices = true;
+    _adminNoticesUnsub = null;
   });
 };
 
