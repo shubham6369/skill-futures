@@ -2273,7 +2273,7 @@ const FounderSection = () => `
     <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
       
       <div style="margin-bottom: 2rem; position: relative;">
-        <img src="/founder-avatar.png" alt="Mohammed Faizan" style="width: 250px; height: 250px; border-radius: 50%; object-fit: cover; border: 6px solid #e0e7ff; box-shadow: 0 15px 35px rgba(67, 56, 202, 0.15);">
+        <img src="founder-avatar.png" alt="Mohammed Faizan" style="width: 250px; height: 250px; border-radius: 50%; object-fit: cover; border: 6px solid #e0e7ff; box-shadow: 0 15px 35px rgba(67, 56, 202, 0.15);">
         <div style="position: absolute; bottom: 0; right: 20px; background: #f59e0b; color: white; padding: 8px 16px; border-radius: 30px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);">CEO</div>
       </div>
 
