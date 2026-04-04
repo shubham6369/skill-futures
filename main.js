@@ -228,8 +228,10 @@ const fetchUserData = async (uid) => {
     // --- Onboarding Logic ---
     // If the user arrives at home, login, or signup while authenticated,
     // we guide them to the appropriate next stop.
-    if (['home', 'login', 'signup'].includes(AppState.view)) {
-      if (!userData.package) {
+    if (['home', 'login', 'signup', 'admin-login'].includes(AppState.view)) {
+      if (AppState.isAdmin || AppState.developerMode) {
+        AppState.view = 'admin-dashboard';
+      } else if (!userData.package) {
         AppState.view = 'select-package';
       } else {
         AppState.view = 'dashboard';
@@ -2408,6 +2410,40 @@ const AuthView = (type) => `
   </div>
 `;
 
+const AdminLoginView = () => `
+  <div class="auth-wrapper" style="background: #0f172a;">
+    <div class="auth-card" style="background: #1e293b; color: white; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+      <h2 class="auth-title" style="color: #f8fafc; font-size: 2rem;">Secure Admin Portal</h2>
+      <p class="auth-subtitle" style="color: #94a3b8;">
+        Authorized personnel only. Please enter your credentials to access the admin dashboard.
+      </p>
+      
+      <form id="adminLoginForm">
+        <div class="form-field">
+          <label class="form-label" style="color: #cbd5e1;">Admin Email</label>
+          <input type="email" id="adminLoginEmail" class="auth-input" placeholder="admin@example.com" style="background: #0f172a; color: white; border-color: #334155;" required>
+        </div>
+        
+        <div class="form-field">
+          <label class="form-label" style="color: #cbd5e1;">Master Password</label>
+          <div class="password-container">
+            <input type="password" id="adminLoginPassword" class="auth-input" placeholder="••••••••" style="background: #0f172a; color: white; border-color: #334155;" required>
+            <i class="fas fa-eye visibility-toggle" style="color: #64748b;" onclick="const p = document.getElementById('adminLoginPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.classList.toggle('fa-eye'); this.classList.toggle('fa-eye-slash');"></i>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-auth" style="background: #ef4444; margin-top: 1.5rem; border: none; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);">
+          Authenticate <i class="fas fa-shield-alt"></i>
+        </button>
+      </form>
+      
+      <div class="auth-footer" style="margin-top: 2rem;">
+        Not an admin? <span data-route="home" style="color: #38bdf8; font-weight: 700; cursor: pointer;">Return to Home</span>
+      </div>
+    </div>
+  </div>
+`;
+
 const SignupView = () => `
   <div class="signup-page-wrapper animate-fade" style="justify-content: center; align-items: center; background: #f8fafc;">
     <div class="signup-content-side" style="flex: initial; width: 100%; max-width: 600px; padding: 2rem;">
@@ -2510,7 +2546,7 @@ const Footer = () => `
     
     <div class="footer-bottom">
       <div>Copyright © 2026. All rights reserved.</div>
-      <div data-route="admin-dashboard" style="color: #ef4444; font-weight: 800; cursor: pointer; font-size: 0.75rem; letter-spacing: 1px; margin-left: 1rem;">[ ADMIN PANEL ]</div>
+      <div data-route="admin-login" style="color: #ef4444; font-weight: 800; cursor: pointer; font-size: 0.75rem; letter-spacing: 1px; margin-left: 1rem;">[ ADMIN PANEL ]</div>
     </div>
   </footer>
 `;
@@ -2784,6 +2820,7 @@ const render = () => {
         AppState.view === 'refund-policy' ? RefundPolicyView() :
         AppState.view === 'disclaimer' ? DisclaimerView() :
         AppState.view === 'terms' ? TermsView() :
+        AppState.view === 'admin-login' ? AdminLoginView() :
         AppState.view === 'login' ? AuthView('login') : SignupView()
       }</main>
       ${Footer()}
@@ -2795,7 +2832,15 @@ const render = () => {
 const attachEvents = () => {
   document.querySelectorAll('[data-route]').forEach(el => {
     el.onclick = () => { 
-      AppState.view = el.dataset.route; 
+      let route = el.dataset.route;
+      if (route === 'admin-login' && AppState.user) {
+        if (AppState.isAdmin || AppState.developerMode) route = 'admin-dashboard';
+        else {
+          alert('You are currently signed in as a regular user. Please sign out first to access the Admin Portal.');
+          return;
+        }
+      }
+      AppState.view = route; 
       if (window.innerWidth <= 768) {
         AppState.isSidebarVisible = false;
       }
@@ -2840,6 +2885,20 @@ const attachEvents = () => {
         await signInWithEmailAndPassword(auth, email, pass); 
       } catch (e) { 
         alert(e.message); 
+      }
+    };
+  }
+
+  const adminLoginForm = document.querySelector('#adminLoginForm');
+  if (adminLoginForm) {
+    adminLoginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.querySelector('#adminLoginEmail').value;
+      const pass = document.querySelector('#adminLoginPassword').value;
+      try { 
+        await signInWithEmailAndPassword(auth, email, pass); 
+      } catch (err) { 
+        alert(err.message); 
       }
     };
   }
