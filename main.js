@@ -2265,6 +2265,32 @@ const TermsView = () => `
 
 const HomeView = () => `
   ${PackagesSection()}
+  ${FounderSection()}
+`;
+
+const FounderSection = () => `
+  <section class="founder-section animate-fade-up" style="padding: 4rem 2rem; background: #fff; text-align: center;">
+    <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+      <h2 style="font-size: 2.25rem; font-weight: 800; color: #0f172a; margin-bottom: 2.5rem; line-height: 1.3;">Meet Our Founder – Mohammed Faizan 🚀</h2>
+      
+      <div style="margin-bottom: 2.5rem; position: relative;">
+        <img src="/founder-avatar.png" alt="Mohammed Faizan" style="width: 250px; height: 250px; border-radius: 50%; object-fit: cover; border: 6px solid #e0e7ff; box-shadow: 0 15px 35px rgba(67, 56, 202, 0.15);">
+        <div style="position: absolute; bottom: 0; right: 20px; background: #f59e0b; color: white; padding: 8px 16px; border-radius: 30px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);">CEO</div>
+      </div>
+
+      <div style="background: #f8fafc; padding: 2.5rem; border-radius: 20px; border: 1px solid #e2e8f0; text-align: left;">
+        <p style="color: #334155; font-size: 1.15rem; line-height: 1.8; margin-bottom: 1.5rem;">
+          <strong style="color: #0f172a;">Mohammed Faizan</strong>, Founder & CEO of Skill Futures, is a visionary leader in the digital space, committed to empowering individuals with future-ready skills. With 2–3 years of experience, he has successfully guided <strong style="color: #4338ca;">500+ individuals</strong> to build strong and sustainable income opportunities alongside their studies or work. 💼
+        </p>
+        <p style="color: #334155; font-size: 1.15rem; line-height: 1.8; margin-bottom: 1.5rem;">
+          With a deep understanding of the affiliate industry, he has designed result-oriented systems focused on real growth, clarity, and long-term success. ⚡
+        </p>
+        <p style="color: #334155; font-size: 1.15rem; line-height: 1.8; margin: 0;">
+          Driven by the belief that skills are the true power, his mission is to uplift individuals from struggle, provide the right direction, and help them become self-dependent.
+        </p>
+      </div>
+    </div>
+  </section>
 `;
 
 const PackagesSection = () => `
