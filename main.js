@@ -656,10 +656,7 @@ const AdminModal = () => {
                 </div>
               </div>
 
-              <div class="form-group" style="margin-bottom: 1rem;">
-                <label>Cover Image URL (Optional)</label>
-                <input type="url" id="courseImg" class="form-input-styled" value="${data?.img || ''}" placeholder="https://images.unsplash.com/...">
-              </div>
+
 
               <div class="form-group" style="margin-bottom: 1rem;">
                 <label>Total Lessons</label>
@@ -2362,45 +2359,13 @@ const PackagesSection = () => `
   <section class="packages-section animate-fade-up">
     <h2>Our Exclusive Packages</h2>
     <p>Empower your journey with our carefully curated digital skill development packages.</p>
-    <div class="package-grid">
-      <div class="package-card" data-route="signup">
+    <div class="package-grid" style="grid-template-columns: 1fr; max-width: 400px; margin: 0 auto;">
+      <div class="package-card" data-route="signup" style="transform: none !important;">
         <div class="package-badge">Best for Beginners</div>
         <img src="/basic-package.png" alt="Basic Package">
         <div class="package-info">
           <h3>Basic Package</h3>
           <p>₹1599</p>
-        </div>
-      </div>
-      <div class="package-card" data-route="signup">
-        <div class="package-badge">Most Popular</div>
-        <img src="/advance-package.png" alt="Advance Package">
-        <div class="package-info">
-          <h3>Advance Package</h3>
-          <p>₹2399</p>
-        </div>
-      </div>
-      <div class="package-card" data-route="signup">
-        <div class="package-badge">Creator Skills</div>
-        <img src="/creator-package.png" alt="Creator Package">
-        <div class="package-info">
-          <h3>Creator Package</h3>
-          <p>₹4310</p>
-        </div>
-      </div>
-      <div class="package-card" data-route="signup">
-        <div class="package-badge">Global Access</div>
-        <img src="/global-package.png" alt="Global Package">
-        <div class="package-info">
-          <h3>Global Package</h3>
-          <p>₹7260</p>
-        </div>
-      </div>
-      <div class="package-card" data-route="signup">
-        <div class="package-badge">Elite Pro</div>
-        <img src="/premium-package.png" alt="Premium Package">
-        <div class="package-info">
-          <h3>Premium Package</h3>
-          <p>₹9999</p>
         </div>
       </div>
     </div>
@@ -2621,16 +2586,12 @@ const SelectPackageView = () => {
   const discount = AppState.commissionSettings.referralDiscount || 100;
 
   const packages = [
-    { id: 'grow', name: 'Basic', badge: 'Best for Beginners', price: 1599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
-    { id: 'advance', name: 'Advance', badge: 'Financial Mastery', price: 2399, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
-    { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 4310, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
-    { id: 'global', name: 'Global', badge: 'High-Income Skills', price: 7260, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
-    { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 9999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
+    { id: 'grow', name: 'Basic', badge: 'Best for Beginners', price: 1599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] }
   ];
 
-  // Default to Finance if nothing selected or first time
+  // Default to Basic
   if (!AppState.selectedPackage) {
-    AppState.selectedPackage = packages.find(p => p.id === 'advance');
+    AppState.selectedPackage = packages[0];
   }
 
   const p = AppState.selectedPackage;
@@ -3189,7 +3150,6 @@ const attachEvents = () => {
         saveCourse({
           id: document.querySelector('#courseId').value,
           title: document.querySelector('#courseTitle').value,
-          img: document.querySelector('#courseImg').value,
           category: document.querySelector('#courseCategory').value,
           totalLessons: Number(document.querySelector('#courseLessons').value),
           lessons: lessons
