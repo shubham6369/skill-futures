@@ -3143,8 +3143,8 @@ const attachEvents = () => {
         // Collect dynamic lessons
         const lessonRows = document.querySelectorAll('.lesson-row');
         const lessons = Array.from(lessonRows).map(row => ({
-          title: row.querySelector('.lesson-title').value,
-          videoUrl: row.querySelector('.lesson-url').value
+          title: row.querySelector('.lesson-title-input').value,
+          videoUrl: row.querySelector('.lesson-url-input').value
         })).filter(l => l.title || l.videoUrl); // Remove empty rows
 
         saveCourse({
@@ -3244,6 +3244,7 @@ const attachEvents = () => {
 
 onAuthStateChanged(auth, (user) => {
   AppState.user = user;
+  fetchCourses(); // ENSURE GLOBAL SYNC
   if (user) {
     // Just fetch data. The fetchUserData onSnapshot will handle view redirection.
     fetchUserData(user.uid);
