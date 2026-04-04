@@ -64,6 +64,7 @@ const AppState = {
   allNotices: [],
   userPayouts: [],
   selectedCourseId: null,
+  activeLessonId: null,
   uploadingProfile: false,
   showWelcomeModal: false,
   profileTab: 'details',
@@ -627,7 +628,6 @@ const WelcomeModal = () => {
 const AdminModal = () => {
   if (!AppState.adminModal) return '';
   const { type, data } = AppState.adminModal;
-  
   if (type === 'course') {
     return `
       <div class="modal-overlay" id="adminModalOverlay">
@@ -663,12 +663,35 @@ const AdminModal = () => {
 
               <div class="form-group" style="margin-bottom: 1rem;">
                 <label>Total Lessons</label>
-                <input type="number" id="courseLessons" class="form-input-styled" value="${data?.totalLessons || 12}" required>
+                <input type="number" id="courseLessons" class="form-input-styled" value="${data.lessons?.length || data.totalLessons || 0}" required readonly>
+                <small style="color: #64748b;">(Auto-calculated from lesson list below)</small>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                  <label style="font-weight: 700; color: #1e1b4b;"><i class="fas fa-video"></i> Video Lessons (${data.lessons?.length || 0})</label>
+                  <button type="button" class="btn btn-auth" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.75rem; background: #6366f1;" onclick="window.addAdminLesson()">
+                    <i class="fas fa-plus"></i> Add Lesson
+                  </button>
+                </div>
+                
+                <div id="lessonList" style="display: flex; flex-direction: column; gap: 1rem; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                  ${(data.lessons || []).map((lesson, i) => `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; position: relative;" class="lesson-row">
+                      <button type="button" onclick="window.removeAdminLesson(${i})" style="position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; background: #ef4444; color: white; border: none; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 2;">&times;</button>
+                      <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <input type="text" class="lesson-title-input form-input-styled" style="padding: 10px; font-size: 0.85rem;" value="${lesson.title}" placeholder="Lesson Title (e.g. Introduction to Sales)" required/>
+                        <input type="url" class="lesson-url-input form-input-styled" style="padding: 10px; font-size: 0.85rem;" value="${lesson.videoUrl}" placeholder="Video Link (YouTube/Direct)" required/>
+                      </div>
+                    </div>
+                  `).join('')}
+                  ${!data.lessons || data.lessons.length === 0 ? '<div style="text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.85rem; background: #f8fafc; border: 1.5px dashed #e2e8f0; border-radius: 12px;">No lessons added yet. Click "Add Lesson" to start.</div>' : ''}
+                </div>
               </div>
 
               <div class="modal-actions" style="margin-top: 1rem;">
                 <button type="submit" class="btn btn-save" style="width: 100%; border-radius: 12px;">
-                  <i class="fas fa-save"></i> COMMITTING CHANGES
+                  <i class="fas fa-save"></i> SYNC WITH DATABASE
                 </button>
               </div>
             </form>
@@ -2698,34 +2721,86 @@ const render = () => {
           const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || AppState.courses[0] || {};
           const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
           const completed = enrollment.completedLessons || [];
+          const lessons = course.lessons || [];
+          
+          // Default to first lesson if none active
+          if (!AppState.activeLessonId && lessons.length > 0) {
+            AppState.activeLessonId = lessons[0].title;
+          }
+          
+          const currentLesson = lessons.find(l => l.title === AppState.activeLessonId) || lessons[0] || {};
+
           return `
             <section class="main-content animate-fade">
-              <h1 style="margin-bottom: 0.5rem;">${course.title || 'Course Training'}</h1>
-              <p style="color: #64748b; margin-bottom: 2rem;">Master your skills with ${course.title}</p>
-              <div class="metrics-grid training-player-grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
-                <div class="chart-container" style="padding: 0; overflow: hidden; background: black; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-                  <div style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #1e1b4b;">
-                    <i class="fas fa-play-circle" style="font-size: 5rem; color: #4338ca; cursor: pointer;"></i>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem;">
+                <div>
+                  <h1 style="margin: 0;">${course.title || 'Course Training'}</h1>
+                  <p style="color: #64748b; margin-top: 0.5rem;">${currentLesson.title ? `Currently Watching: ${currentLesson.title}` : 'Master your skills'}</p>
+                </div>
+                <button onclick="AppState.view='courses'; render();" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                  <i class="fas fa-arrow-left"></i> Back to Courses
+                </button>
+              </div>
+
+              <div class="metrics-grid training-player-grid" style="grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
+                <div class="chart-container" style="padding: 0; overflow: hidden; background: #000; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid #1e293b;">
+                  <div style="aspect-ratio: 16/9; width: 100%; position: relative; background: #000;">
+                    ${(() => {
+                      if (!currentLesson.videoUrl) return `
+                        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 1rem;">
+                          <i class="fas fa-play-circle" style="font-size: 5rem; color: #334155;"></i>
+                          <p>Select a lesson to start watching</p>
+                        </div>`;
+                      
+                      let embedUrl = currentLesson.videoUrl;
+                      if (embedUrl.includes('youtube.com/watch?v=')) {
+                        embedUrl = embedUrl.replace('watch?v=', 'embed/');
+                      } else if (embedUrl.includes('youtu.be/')) {
+                        embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+                      }
+
+                      return `
+                        <iframe 
+                          src="${embedUrl}" 
+                          style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowfullscreen>
+                        </iframe>`;
+                    })()}
+                  </div>
+                  <div style="padding: 1.5rem; background: white; border-top: 1px solid #f1f5f9;">
+                    <h2 style="font-size: 1.25rem; margin-bottom: 0.5rem;">${currentLesson.title || 'Welcome'}</h2>
+                    <p style="color: #64748b; font-size: 0.9rem; line-height: 1.6;">${course.description || 'Welcome to this specialized training session. Follow along and take notes for the best results.'}</p>
                   </div>
                 </div>
-                <div class="chart-container" style="overflow-y: auto; max-height: 500px; display: flex; flex-direction: column;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3 style="margin: 0;">Course Modules</h3>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #16a34a;">${enrollment.progress || 0}% Complete</span>
+
+                <!-- lesson sidebar -->
+                <div class="chart-container" style="padding: 1.5rem; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9;">
+                    <h3 style="margin: 0; font-size: 1.1rem;">Course Content</h3>
+                    <span style="font-size: 0.8rem; font-weight: 800; color: #16a34a; background: #f0fdf4; padding: 4px 10px; border-radius: 50px;">${enrollment.progress || 0}% Done</span>
                   </div>
-                  <div style="display: flex; flex-direction: column; gap: 12px;">
-                    ${Array.from({ length: course.totalLessons || 5 }).map((_, i) => {
-                      const lessonId = `L${i+1}`;
-                      const isDone = completed.includes(lessonId);
+                  <div style="display: flex; flex-direction: column; gap: 10px; max-height: 600px; overflow-y: auto; padding-right: 4px;">
+                    ${lessons.length === 0 ? `
+                      <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                         <i class="fas fa-video-slash" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                         <p>No lessons uploaded yet.</p>
+                      </div>
+                    ` : lessons.map((l, i) => {
+                      const isActive = AppState.activeLessonId === l.title;
+                      const isDone = completed.includes(l.title);
                       return `
-                        <div class="training-module ${isDone ? 'completed' : ''}" 
-                             onclick="window.updateProgress('${course.id}', '${lessonId}')"
-                             style="padding: 1.2rem; background: ${isDone ? '#f0fdf4' : 'white'}; border-radius: 12px; border: 1px solid ${isDone ? '#bcf0da' : '#f1f5f9'}; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s;">
-                          <div style="width: 24px; height: 24px; border-radius: 50%; background: ${isDone ? '#22c55e' : '#f1f5f9'}; display: flex; align-items: center; justify-content: center; color: ${isDone ? 'white' : '#94a3b8'};">
-                            ${isDone ? '<i class="fas fa-check" style="font-size: 0.7rem;"></i>' : i+1}
+                        <div class="training-module ${isActive ? 'active' : ''} ${isDone ? 'completed' : ''}" 
+                             onclick="window.playLesson('${l.title}', '${course.id}')"
+                             style="padding: 1rem; background: ${isActive ? 'var(--accent)' : 'white'}; border-radius: 12px; border: 1.5px solid ${isActive ? 'var(--accent)' : '#f1f5f9'}; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s; position: relative;">
+                          <div style="width: 28px; height: 28px; border-radius: 8px; background: ${isActive ? 'white' : (isDone ? '#dcfce7' : '#f8fafc')}; display: flex; align-items: center; justify-content: center; color: ${isActive ? 'var(--accent)' : (isDone ? '#16a34a' : '#94a3b8')}; flex-shrink: 0; font-weight: 800; font-size: 0.8rem;">
+                            ${isDone ? '<i class="fas fa-check"></i>' : i+1}
                           </div>
-                          <span style="font-weight: 600; color: ${isDone ? '#166534' : '#1e293b'}; flex-grow: 1;">Lesson ${i+1}: Module Title</span>
-                          ${!isDone ? '<i class="fas fa-play" style="font-size: 0.8rem; color: #4338ca;"></i>' : ''}
+                          <div style="flex-grow: 1; min-width: 0;">
+                            <div style="font-weight: 700; color: ${isActive ? 'white' : '#1e293b'}; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${l.title}</div>
+                            <div style="font-size: 0.7rem; color: ${isActive ? 'rgba(255,255,255,0.8)' : '#94a3b8'};">Standard Lesson</div>
+                          </div>
+                          ${isActive ? '<div class="lesson-active-dot"></div>' : ''}
                         </div>`;
                     }).join('')}
                   </div>
@@ -3055,7 +3130,8 @@ const attachEvents = () => {
 
   // Admin Window Helpers
   window.showCourseModal = (courseId) => {
-    const data = courseId ? AppState.courses.find(c => c.id === courseId) : null;
+    const data = courseId ? AppState.courses.find(c => c.id === courseId) : { lessons: [] };
+    if (!data.lessons) data.lessons = [];
     AppState.adminModal = { type: 'course', data };
     render();
     
@@ -3063,12 +3139,21 @@ const attachEvents = () => {
     if (form) {
       form.onsubmit = (e) => {
         e.preventDefault();
+        
+        // Collect dynamic lessons
+        const lessonRows = document.querySelectorAll('.lesson-row');
+        const lessons = Array.from(lessonRows).map(row => ({
+          title: row.querySelector('.lesson-title').value,
+          videoUrl: row.querySelector('.lesson-url').value
+        })).filter(l => l.title || l.videoUrl); // Remove empty rows
+
         saveCourse({
           id: document.querySelector('#courseId').value,
           title: document.querySelector('#courseTitle').value,
           img: document.querySelector('#courseImg').value,
           category: document.querySelector('#courseCategory').value,
-          totalLessons: Number(document.querySelector('#courseLessons').value)
+          totalLessons: Number(document.querySelector('#courseLessons').value),
+          lessons: lessons
         });
       };
     }
@@ -3136,6 +3221,26 @@ const attachEvents = () => {
   };
   
   window.deleteNotice = deleteNotice;
+  
+  window.addAdminLesson = () => {
+    if (AppState.adminModal && AppState.adminModal.type === 'course') {
+      AppState.adminModal.data.lessons.push({ title: '', videoUrl: '' });
+      render();
+    }
+  };
+
+  window.playLesson = (lessonTitle, courseId) => {
+    AppState.activeLessonId = lessonTitle;
+    render();
+    window.updateProgress(courseId, lessonTitle);
+  };
+
+  window.removeAdminLesson = (index) => {
+    if (AppState.adminModal && AppState.adminModal.type === 'course') {
+      AppState.adminModal.data.lessons.splice(index, 1);
+      render();
+    }
+  };
 };
 
 onAuthStateChanged(auth, (user) => {
