@@ -2681,7 +2681,13 @@ const SelectPackageView = () => {
 
 // ─── Core Orchestration ──────────────────────────────────────────────────────
 
+let _renderTimer = null;
 const render = () => {
+  if (_renderTimer) clearTimeout(_renderTimer);
+  _renderTimer = setTimeout(_renderNow, 50);
+};
+
+const _renderNow = () => {
   const app = document.querySelector('#app');
   if (AppState.user) {
     const isAdminView = AppState.view.startsWith('admin-') && (AppState.isAdmin || AppState.developerMode);
