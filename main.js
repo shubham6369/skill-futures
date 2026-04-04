@@ -446,7 +446,7 @@ window.uploadProfileImage = async (e) => {
 // ─── Admin Actions ───────────────────────────────────────────────────────────
 
 const fetchAdminUsers = async () => {
-  if (!AppState.isAdmin || AppState.loading.adminUsers) return;
+  if ((!AppState.isAdmin && !AppState.developerMode) || AppState.loading.adminUsers) return;
   AppState.loading.adminUsers = true;
   try {
     const q = query(collection(db, 'users'), orderBy('joinedAt', 'desc'));
@@ -461,7 +461,7 @@ const fetchAdminUsers = async () => {
 };
 
 const fetchAdminSettings = async () => {
-  if (!AppState.isAdmin || AppState.loading.adminSettings) return;
+  if ((!AppState.isAdmin && !AppState.developerMode) || AppState.loading.adminSettings) return;
   AppState.loading.adminSettings = true;
   try {
     const sDoc = await getDoc(doc(db, 'settings', 'commissions'));
@@ -502,7 +502,7 @@ const saveUser = async (id, updatedData) => {
 };
 
 const fetchAdminPayouts = async () => {
-  if (!AppState.isAdmin || AppState.loading.adminPayouts) return;
+  if ((!AppState.isAdmin && !AppState.developerMode) || AppState.loading.adminPayouts) return;
   AppState.loading.adminPayouts = true;
   try {
     const q = query(collection(db, 'payoutRequests'), orderBy('createdAt', 'desc'));
@@ -565,7 +565,7 @@ const saveCourse = async (courseData) => {
 
 let _adminNoticesUnsub = null;
 const fetchAdminNotices = async () => {
-  if (!AppState.isAdmin) return;
+  if (!AppState.isAdmin && !AppState.developerMode) return;
   if (_adminNoticesUnsub) return;
   _adminNoticesUnsub = onSnapshot(collection(db, 'notices'), (snap) => {
     AppState.allNotices = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -2866,7 +2866,7 @@ const render = () => {
     }
 
     if (AppState.view === 'wallet' && !AppState.fetched.userPayouts && !AppState.loading.userPayouts) fetchUserPayouts();
-    if (AppState.view === 'leaderboard' && AppState.leaderboard.length === 0 && !AppState.loading.leaderboard) fetchLeaderboard();
+    if (AppState.view === 'leaderboard' && AppState.leaderboardToday.length === 0 && !AppState.loading.leaderboard) fetchLeaderboard();
     if (AppState.view === 'team' && AppState.team.length === 0 && !AppState.loading.team) fetchTeam();
     if (AppState.view === 'courses' && AppState.courses.length === 0 && !AppState.loading.courses) {
       fetchCourses();
@@ -3151,7 +3151,8 @@ const attachEvents = () => {
           id: document.querySelector('#courseId').value,
           title: document.querySelector('#courseTitle').value,
           category: document.querySelector('#courseCategory').value,
-          totalLessons: Number(document.querySelector('#courseLessons').value),
+          price: Number(document.querySelector('#coursePrice').value) || 599,
+          totalLessons: lessons.length,
           lessons: lessons
         });
       };
