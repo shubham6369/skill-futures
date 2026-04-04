@@ -2271,12 +2271,13 @@ const HomeView = () => `
 const FounderSection = () => `
   <section class="founder-section animate-fade-up" style="padding: 4rem 2rem; background: #fff; text-align: center;">
     <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
-      <h2 style="font-size: 2.25rem; font-weight: 800; color: #0f172a; margin-bottom: 2.5rem; line-height: 1.3;">Meet Our Founder – Mohammed Faizan 🚀</h2>
       
-      <div style="margin-bottom: 2.5rem; position: relative;">
+      <div style="margin-bottom: 2rem; position: relative;">
         <img src="/founder-avatar.png" alt="Mohammed Faizan" style="width: 250px; height: 250px; border-radius: 50%; object-fit: cover; border: 6px solid #e0e7ff; box-shadow: 0 15px 35px rgba(67, 56, 202, 0.15);">
         <div style="position: absolute; bottom: 0; right: 20px; background: #f59e0b; color: white; padding: 8px 16px; border-radius: 30px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);">CEO</div>
       </div>
+
+      <h2 style="font-size: 2.25rem; font-weight: 800; color: #0f172a; margin-bottom: 2.5rem; line-height: 1.3;">Meet Our Founder – Mohammed Faizan 🚀</h2>
 
       <div style="background: #f8fafc; padding: 2.5rem; border-radius: 20px; border: 1px solid #e2e8f0; text-align: left;">
         <p style="color: #334155; font-size: 1.15rem; line-height: 1.8; margin-bottom: 1.5rem;">
