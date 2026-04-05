@@ -1,6 +1,7 @@
 import { auth, db, googleProvider, storage,
   collection, query, where, orderBy, limit, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, increment, deleteDoc, onSnapshot
 } from './firebase.js';
+import { courses as seedData } from './seed-courses.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { 
   onAuthStateChanged, 
@@ -549,27 +550,6 @@ const deleteCourse = async (courseId) => {
   }
 };
 
-window.enrollInCourse = async (courseId) => {
-  if (!AppState.user) {
-    alert("Please log in to enroll.");
-    return;
-  }
-  try {
-    await addDoc(collection(db, 'userCourses'), {
-      userId: AppState.user.uid,
-      courseId: courseId,
-      enrolledAt: new Date().toISOString()
-    });
-    alert("You have successfully enrolled in the course!");
-    
-    // Refresh courses if possible
-    if (typeof fetchCourses === 'function') await fetchCourses();
-    render();
-  } catch(err) {
-    alert("Error enrolling: " + err.message);
-  }
-};
-
 const saveCourse = async (courseData) => {
   try {
     if (courseData.id) {
@@ -588,16 +568,6 @@ const saveCourse = async (courseData) => {
 };
 
 let _adminNoticesUnsub = null;
-window.deleteCourse = async (id) => {
-  if (!confirm("Are you sure you want to delete this course?")) return;
-  try {
-    await deleteDoc(doc(db, 'courses', id));
-    alert("Course deleted successfully!");
-  } catch (err) {
-    alert("Error deleting course: " + err.message);
-  }
-};
-
 const fetchAdminNotices = async () => {
   if (!AppState.isAdmin && !AppState.developerMode) return;
   if (_adminNoticesUnsub) return;
@@ -679,6 +649,11 @@ const AdminModal = () => {
               <div class="form-group" style="margin-bottom: 1rem;">
                 <label>Course Title</label>
                 <input type="text" id="courseTitle" class="form-input-styled" value="${data?.title || ''}" required placeholder="e.g. High-Ticket Sales Mastery">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label>Course Image URL</label>
+                <input type="url" id="courseImg" class="form-input-styled" value="${data?.img || ''}" placeholder="https://images.unsplash.com/photo-...">
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -897,72 +872,6 @@ const BasicPackageDetailModal = () => `
     </div>
   </div>
 `;
-
-const ElitePackageDetailModal = () => `
-  <div id="eliteDetailModal" style="display: none; position: fixed; inset: 0; z-index: 99999; justify-content: center; align-items: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 1.5rem;" onclick="if(event.target === this) this.style.display='none'">
-    <div style="background: white; width: 100%; max-width: 900px; max-height: 90vh; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; position: relative;" onclick="event.stopPropagation()">
-      <button onclick="document.getElementById('eliteDetailModal').style.display='none'" style="position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: all 0.2s; z-index: 10;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'"><i class="fas fa-times"></i></button>
-      <div style="padding: 3rem; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: white;">
-        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 50px; font-size: 0.85rem; font-weight: 700; color: #818cf8; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
-          <i class="fas fa-crown"></i> PROFESSIONAL EDITION
-        </div>
-        <h2 style="font-size: 2.25rem; font-weight: 900; margin-bottom: 12px; color: white;">Elite Package Blueprint</h2>
-        <p style="color: #94a3b8; font-size: 1.1rem; max-width: 600px; line-height: 1.6;">Our most comprehensive journey for the digital elite. Master every dimension of digital entrepreneurship.</p>
-      </div>
-      <div style="flex-grow: 1; overflow-y: auto; padding: 3rem;">
-        <div style="display: grid; gap: 2.5rem;">
-          <div>
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
-              <div style="width: 48px; height: 48px; background: #eef2ff; color: #4338ca; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;"><i class="fas fa-rocket"></i></div>
-              <h3 style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">Module 1: Advanced Marketing & Sales</h3>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
-              <div style="padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid #f1f5f9;">
-                <h4 style="color: #4338ca; font-weight: 800; margin-bottom: 8px;">Advanced Sales Funnels</h4>
-                <p style="color: #64748b; font-size: 0.95rem; line-height: 1.5;">Master high-converting automation sequences and behavioral psychology foundations.</p>
-              </div>
-              <div style="padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid #f1f5f9;">
-                <h4 style="color: #4338ca; font-weight: 800; margin-bottom: 8px;">Meta Ads Mastery</h4>
-                <p style="color: #64748b; font-size: 0.95rem; line-height: 1.5;">Scale ad budgets efficiently with advanced targeting and creative strategies.</p>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
-              <div style="width: 48px; height: 48px; background: #f0fdf4; color: #16a34a; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;"><i class="fas fa-users"></i></div>
-              <h3 style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">Module 2: Personal Branding & Content</h3>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
-              <div style="padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid #f1f5f9;">
-                <h4 style="color: #16a34a; font-weight: 800; margin-bottom: 8px;">Personal Branding</h4>
-                <p style="color: #64748b; font-size: 0.95rem; line-height: 1.5;">Build authority in your niche and attract premium clients organically.</p>
-              </div>
-              <div style="padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid #f1f5f9;">
-                <h4 style="color: #16a34a; font-weight: 800; margin-bottom: 8px;">Video Editing & Canva Mastery</h4>
-                <p style="color: #64748b; font-size: 0.95rem; line-height: 1.5;">Create professional visual content and viral-style videos effortlessly.</p>
-              </div>
-            </div>
-          </div>
-          <div style="background: #eff6ff; padding: 2rem; border-radius: 20px; border: 1px solid #dbeafe;">
-            <h4 style="color: #1e40af; font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;"><i class="fas fa-star"></i> Elite Benefits</h4>
-            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-              <li style="display: flex; align-items: center; gap: 10px; color: #1e3a8a; font-weight: 600;"><i class="fas fa-check-circle" style="color: #3b82f6;"></i> 1-on-1 VIP Mentorship</li>
-              <li style="display: flex; align-items: center; gap: 10px; color: #1e3a8a; font-weight: 600;"><i class="fas fa-check-circle" style="color: #3b82f6;"></i> Global Market Insights</li>
-              <li style="display: flex; align-items: center; gap: 10px; color: #1e3a8a; font-weight: 600;"><i class="fas fa-check-circle" style="color: #3b82f6;"></i> Master Franchise Rights</li>
-              <li style="display: flex; align-items: center; gap: 10px; color: #1e3a8a; font-weight: 600;"><i class="fas fa-check-circle" style="color: #3b82f6;"></i> Lifetime All-Course Access</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div style="padding: 2rem 3rem; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
-        <button onclick="document.getElementById('eliteDetailModal').style.display='none'" class="btn btn-primary" style="height: 50px; padding: 0 2rem; border-radius: 12px; font-weight: 800;">
-          Close Details
-        </button>
-      </div>
-    </div>
-  </div>
-`;
-
 
 const ProfileView = () => {
   const ud = AppState.userData || {};
@@ -1225,9 +1134,14 @@ const AdminCoursesView = () => `
   <section class="main-content animate-fade">
     <div class="admin-section-header">
       <h1>Course Catalog</h1>
-      <button class="btn btn-auth" style="width: auto; padding: 0.8rem 1.5rem;" onclick="window.showCourseModal()">
-        <i class="fas fa-plus"></i> Add New Course
-      </button>
+      <div style="display: flex; gap: 1rem;">
+        <button class="btn btn-auth" style="width: auto; padding: 0.8rem 1.5rem; background: var(--secondary);" onclick="window.seedAllCourses()">
+          <i class="fas fa-magic"></i> Seed Catalog
+        </button>
+        <button class="btn btn-auth" style="width: auto; padding: 0.8rem 1.5rem;" onclick="window.showCourseModal()">
+          <i class="fas fa-plus"></i> Add New Course
+        </button>
+      </div>
     </div>
     <div class="course-grid">
       ${AppState.courses.length === 0 ? `
@@ -2065,8 +1979,7 @@ const UpgradeView = () => {
     { name: 'Advance', badge: 'Financial Mastery', img: '/advance-package.png', price: 2399, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
     { name: 'Creator', badge: 'Creator Skills', img: '/creator-package.png', price: 4310, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
     { name: 'Global', badge: 'High-Income Skills', img: '/global-package.png', price: 7260, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
-    { name: 'Premium', badge: 'Elite Pro', img: '/premium-package.png', price: 9999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] },
-    { name: 'Elite', badge: 'Professional', img: '/elite-package.png', price: 11999, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship', 'Global Market Insights', 'Master Franchise Rights', 'Lifetime Access'], best: true }
+    { name: 'Premium', badge: 'Elite Pro', img: '/premium-package.png', price: 9999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
   ];
 
   return `
@@ -2101,9 +2014,6 @@ const UpgradeView = () => {
                 ${p.name === 'Basic' ? `
                 <button onclick="document.getElementById('basicDetailModal').style.display='flex'" style="width: 100%; height: 46px; margin-top: 0.75rem; border-radius: 12px; border: 2px solid #6366f1; background: transparent; color: #6366f1; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='#eef2ff'" onmouseout="this.style.background='transparent'">
                   <i class="fas fa-book-open"></i> View Course Details
-                </button>` : p.name === 'Elite' ? `
-                <button onclick="document.getElementById('eliteDetailModal').style.display='flex'" style="width: 100%; height: 46px; margin-top: 0.75rem; border-radius: 12px; border: 2px solid #6366f1; background: transparent; color: #6366f1; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='#eef2ff'" onmouseout="this.style.background='transparent'">
-                  <i class="fas fa-book-open"></i> View Elite Roadmap
                 </button>` : ''}
 
               </div>
@@ -2461,56 +2371,22 @@ const FounderSection = () => `
   </section>
 `;
 
-const PackagesSection = () => {
-  const packages = [
-    { id: 'grow', name: 'Basic', badge: 'Best for Beginners', price: 1599, img: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80' },
-    { id: 'advance', name: 'Advance', badge: 'Financial Mastery', price: 2399, img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80', best: true },
-    { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 4310, img: 'https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=800&q=80' },
-    { id: 'global', name: 'Global', badge: 'High-Income Skills', price: 7260, img: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80' },
-    { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 9999, img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80' }
-  ];
-
-  return `
-    <section class="packages-section animate-fade-up px-6 py-20">
-      <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-16">
-          <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Our Exclusive Packages</h2>
-          <p class="text-gray-400 max-w-2xl mx-auto">Empower your journey with our carefully curated digital skill development packages designed for every stage of your career.</p>
-        </div>
-        <div class="package-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          ${packages.map(pkg => `
-            <div class="package-card glass-effect hover:scale-105 transition-all duration-300 rounded-3xl p-6 relative flex flex-col h-full ${pkg.best ? 'ring-2 ring-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.2)]' : ''}" data-route="signup">
-              ${pkg.best ? '<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-semibold">Recommended</div>' : ''}
-              <div class="package-badge bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-lg text-sm font-medium self-start mb-4">${pkg.badge}</div>
-              <div class="aspect-video relative rounded-2xl overflow-hidden mb-6">
-                <img src="${pkg.img}" alt="${pkg.name} Package" class="w-full h-full object-cover">
-              </div>
-              <div class="flex-grow">
-                <h3 class="text-2xl font-bold text-white mb-2">${pkg.name} Package</h3>
-                <p class="text-3xl font-black text-emerald-400 mb-6">₹${pkg.price}</p>
-                <div class="space-y-3 mb-8">
-                  <div class="flex items-center text-gray-400">
-                    <svg class="w-5 h-5 mr-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    Expert Mentorship
-                  </div>
-                  <div class="flex items-center text-gray-400">
-                    <svg class="w-5 h-5 mr-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    Lifetime Access
-                  </div>
-                  <div class="flex items-center text-gray-400">
-                    <svg class="w-5 h-5 mr-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    Certification
-                  </div>
-                </div>
-              </div>
-              <button class="w-full py-4 rounded-xl font-bold transition-all duration-300 ${pkg.best ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25' : 'bg-white/10 hover:bg-white/20 text-white'}">Enroll Now</button>
-            </div>
-          `).join('')}
+const PackagesSection = () => `
+  <section class="packages-section animate-fade-up">
+    <h2>Our Exclusive Packages</h2>
+    <p>Empower your journey with our carefully curated digital skill development packages.</p>
+    <div class="package-grid" style="grid-template-columns: 1fr; max-width: 400px; margin: 0 auto;">
+      <div class="package-card" data-route="signup" style="transform: none !important;">
+        <div class="package-badge">Best for Beginners</div>
+        <img src="/basic-package.png" alt="Basic Package">
+        <div class="package-info">
+          <h3>Basic Package</h3>
+          <p>₹1599</p>
         </div>
       </div>
-    </section>
-  `;
-};
+    </div>
+  </section>
+`;
 
 const AuthView = (type) => `
   <div class="auth-wrapper">
@@ -2726,12 +2602,7 @@ const SelectPackageView = () => {
   const discount = AppState.commissionSettings.referralDiscount || 100;
 
   const packages = [
-    { id: 'basic', name: 'Basic', badge: 'Beginner', price: 1599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] },
-    { id: 'advance', name: 'Advance', badge: 'Intermediate', price: 3499, features: ['Instagram Mastery', 'Video Editing Basics', 'Lead Generation'] },
-    { id: 'creator', name: 'Creator', badge: 'Most Popular', price: 7999, features: ['YouTube Mastery', 'Content Creation', 'Advanced Video Editing'] },
-    { id: 'global', name: 'Global', badge: 'Advanced', price: 15000, features: ['Facebook Ads', 'Google Ads', 'Funnel Building'] },
-    { id: 'premium', name: 'Premium', badge: 'Pro', price: 25000, features: ['Finance Mastery', 'Stock Market', 'Crypto Trading'] },
-    { id: 'elite', name: 'Elite', badge: 'Professional', price: 11999, features: ['All Premium Courses', 'VIP Mentorship', 'Lifetime Access'] }
+    { id: 'grow', name: 'Basic', badge: 'Best for Beginners', price: 1599, features: ['Social Media Basics', 'Profile Optimization', 'Basics of Affiliate'] }
   ];
 
   // Default to Basic
@@ -3006,7 +2877,6 @@ const _renderNow = () => {
       app.innerHTML = `
         ${WelcomeModal ? WelcomeModal() : ''}
         ${BasicPackageDetailModal()}
-      ${ElitePackageDetailModal()}
         <div class="dashboard-container ${!AppState.isSidebarVisible ? 'sidebar-hidden' : ''}">
           ${Sidebar()}
           <div id="main-view" style="flex-grow: 1; overflow-y: auto;">
@@ -3143,8 +3013,7 @@ const attachEvents = () => {
         { id: 'advance', name: 'Advance', badge: 'Financial Mastery', price: 2399, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship'], best: true },
         { id: 'creator', name: 'Creator', badge: 'Creator Skills', price: 4310, features: ['Video Editing', 'Content Strategy', 'Canva Design Mastery'] },
         { id: 'global', name: 'Global', badge: 'High-Income Skills', price: 7260, features: ['Global Market Insights', 'E-commerce Automation', 'Advanced Networking'] },
-        { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 9999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] },
-        { id: 'elite', name: 'Elite', badge: 'Professional', price: 11999, features: ['Advanced Sales Funnels', 'Meta Ads Mastery', 'Personal Branding', '1-on-1 Mentorship', 'Global Market Insights', 'Master Franchise Rights', 'Lifetime Access'], best: true }
+        { id: 'premium', name: 'Premium', badge: 'Elite Pro', price: 9999, features: ['Master Franchise Rights', 'VIP Support', 'Lifetime Course Access'] }
       ];
       AppState.selectedPackage = packages.find(p => p.id === e.target.value);
       render();
@@ -3303,6 +3172,7 @@ const attachEvents = () => {
         saveCourse({
           id: document.querySelector('#courseId').value,
           title: document.querySelector('#courseTitle').value,
+          img: document.querySelector('#courseImg').value,
           category: document.querySelector('#courseCategory').value,
           price: Number(document.querySelector('#coursePrice').value) || 599,
           totalLessons: lessons.length,
@@ -3412,3 +3282,31 @@ onAuthStateChanged(auth, (user) => {
   }
   render();
 });
+
+  window.seedAllCourses = async () => {
+    if (!confirm(`Are you sure you want to seed ${seedData.length} courses from the library? Existing titles will be skipped.`)) return;
+    
+    let count = 0;
+    try {
+      for (const course of seedData) {
+        const docId = course.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const exists = AppState.courses.find(c => c.title === course.title);
+        
+        if (!exists) {
+          await setDoc(doc(db, 'courses', docId), {
+            ...course,
+            price: course.price || 599,
+            category: course.category || "Premium",
+            lessons: course.lessons || [],
+            totalLessons: course.lessons ? course.lessons.length : (course.totalLessons || 0),
+            createdAt: new Date()
+          });
+          count++;
+        }
+      }
+      alert(`Successfully seeded ${count} new courses! 🎉`);
+      render();
+    } catch (e) {
+      alert('Seeding error: ' + e.message);
+    }
+  };
