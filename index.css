@@ -40,6 +40,13 @@
   --shadow-text-md:     0 2px 6px rgba(0,0,0,0.28);
 
   --popup-transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s cubic-bezier(0.4,0,0.2,1);
+    
+  /* Admin Portal Theme */
+  --admin-bg: #0f172a;
+  --admin-surface: rgba(30, 41, 59, 0.7);
+  --admin-border: rgba(255, 255, 255, 0.1);
+  --admin-accent: #38bdf8;
+  --admin-glow: rgba(56, 189, 248, 0.15);
 }
 
 @keyframes fadeInUp {
@@ -118,6 +125,82 @@ body {
   color: var(--text-main);
   line-height: 1.6;
   overflow-x: hidden;
+}
+
+/* ─── Admin Portal Specifics ─── */
+.admin-auth-container {
+  min-height: 100vh;
+  background: var(--admin-bg);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.admin-glass-card {
+  background: var(--admin-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--admin-border);
+  border-radius: 24px;
+  padding: 3.5rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.admin-input-group {
+  margin-bottom: 2rem;
+}
+
+.admin-input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 4px var(--admin-glow);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.admin-btn {
+  width: 100%;
+  background: var(--admin-accent);
+  color: #0f172a;
+  border: none;
+  border-radius: 12px;
+  padding: 1.15rem;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+  box-shadow: 0 10px 20px -10px rgba(56, 189, 248, 0.5);
+}
+
+.admin-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 15px 30px -10px rgba(56, 189, 248, 0.6);
+}
+
+.admin-btn:active {
+  transform: translateY(0);
 }
 
 /* ─── Layout ────────────────────────────────────────────────────────────────── */

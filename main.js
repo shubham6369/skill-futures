@@ -2455,34 +2455,42 @@ const AuthView = (type) => `
 `;
 
 const AdminLoginView = () => `
-  <div class="auth-wrapper" style="background: #0f172a;">
-    <div class="auth-card" style="background: #1e293b; color: white; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-      <h2 class="auth-title" style="color: #f8fafc; font-size: 2rem;">Secure Admin Portal</h2>
-      <p class="auth-subtitle" style="color: #94a3b8;">
-        Authorized personnel only. Please enter your credentials to access the admin dashboard.
-      </p>
+  <div class="admin-auth-container animate-fade">
+    <div class="admin-glass-card">
+      <div style="text-align: center; margin-bottom: 3rem;">
+        <img src="/logo.png" alt="Skill Futures Admin" style="height: 100px; margin-bottom: 1.5rem; filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));">
+        <h2 style="color: white; font-size: 2.25rem; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 0.5rem;">Admin Portal</h2>
+        <p style="color: var(--admin-accent); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px;">SECURE ACCESS ONLY</p>
+      </div>
       
       <form id="adminLoginForm">
-        <div class="form-field">
-          <label class="form-label" style="color: #cbd5e1;">Admin Email</label>
-          <input type="email" id="adminLoginEmail" class="auth-input" placeholder="admin@example.com" style="background: #0f172a; color: white; border-color: #334155;" required>
-        </div>
-        
-        <div class="form-field">
-          <label class="form-label" style="color: #cbd5e1;">Master Password</label>
-          <div class="password-container">
-            <input type="password" id="adminLoginPassword" class="auth-input" placeholder="••••••••" style="background: #0f172a; color: white; border-color: #334155;" required>
-            <i class="fas fa-eye visibility-toggle" style="color: #64748b;" onclick="const p = document.getElementById('adminLoginPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.classList.toggle('fa-eye'); this.classList.toggle('fa-eye-slash');"></i>
+        <div class="admin-input-group">
+          <label style="display: block; color: #94a3b8; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.75rem; text-transform: uppercase;">Identity Verification</label>
+          <div style="position: relative;">
+            <i class="fas fa-envelope" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: #475569;"></i>
+            <input type="email" id="adminLoginEmail" class="admin-input" placeholder="admin@skillfutures.in" style="padding-left: 3.5rem;" required>
           </div>
         </div>
         
-        <button type="submit" class="btn-auth" style="background: #ef4444; margin-top: 1.5rem; border: none; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);">
-          Authenticate <i class="fas fa-shield-alt"></i>
+        <div class="admin-input-group" style="margin-bottom: 2.5rem;">
+          <label style="display: block; color: #94a3b8; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.75rem; text-transform: uppercase;">Security Key</label>
+          <div style="position: relative;">
+            <i class="fas fa-lock" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: #475569;"></i>
+            <input type="password" id="adminLoginPassword" class="admin-input" placeholder="••••••••" style="padding-left: 3.5rem;" required>
+            <i class="fas fa-eye visibility-toggle" style="color: #475569; right: 1.25rem;" onclick="const p = document.getElementById('adminLoginPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.classList.toggle('fa-eye'); this.classList.toggle('fa-eye-slash');"></i>
+          </div>
+        </div>
+        
+        <button type="submit" class="admin-btn">
+          Authenticate System <i class="fas fa-shield-alt"></i>
         </button>
       </form>
       
-      <div class="auth-footer" style="margin-top: 2rem;">
-        Not an admin? <span data-route="home" style="color: #38bdf8; font-weight: 700; cursor: pointer;">Return to Home</span>
+      <div style="margin-top: 3rem; text-align: center; border-top: 1px solid var(--admin-border); padding-top: 2rem;">
+        <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 1.5rem;">Unauthorized access to this portal is strictly prohibited and monitored.</p>
+        <div data-route="home" style="display: inline-flex; align-items: center; gap: 8px; color: white; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.color='var(--admin-accent)'" onmouseout="this.style.color='white'">
+          <i class="fas fa-arrow-left"></i> Return to Main Website
+        </div>
       </div>
     </div>
   </div>
@@ -2706,6 +2714,14 @@ const render = () => {
 
 const _renderNow = () => {
   const app = document.querySelector('#app');
+  
+  // Standalone Admin Portal Layout
+  if (AppState.view === 'admin-login') {
+    app.innerHTML = AdminLoginView();
+    attachEvents();
+    return;
+  }
+
   if (AppState.user) {
     const isAdminView = AppState.view.startsWith('admin-') && (AppState.isAdmin || AppState.developerMode);
     
@@ -2918,7 +2934,6 @@ const _renderNow = () => {
         AppState.view === 'refund-policy' ? RefundPolicyView() :
         AppState.view === 'disclaimer' ? DisclaimerView() :
         AppState.view === 'terms' ? TermsView() :
-        AppState.view === 'admin-login' ? AdminLoginView() :
         AppState.view === 'login' ? AuthView('login') : SignupView()
       }</main>
       ${Footer()}
