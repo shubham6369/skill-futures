@@ -1101,6 +1101,7 @@ const AdminUsersView = () => `
                   <div>
                     <div style="font-weight: 700; color: #0f172a;">${user.name || 'Unnamed User'}</div>
                     <div style="font-size: 0.8rem; color: #64748b;">${user.email}</div>
+                    <div style="font-size: 0.7rem; color: #94a3b8; font-family: monospace;">ID: ${user.id}</div>
                   </div>
                 </div>
               </td>
