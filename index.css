@@ -2,10 +2,11 @@
   --primary-bg: #f8fafc;
   --secondary-bg: #ffffff;
   --sidebar-bg: #f1f5f9;
-  --accent: #0ea5e9;
+  --accent: #6366f1;
   --text-main: #0f172a;
   --text-dim: #64748b;
   --card-border: #e2e8f0;
+  --radius: 12px;
   
   /* Modern Metric Palette */
   --grad-today: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
@@ -99,7 +100,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 

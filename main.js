@@ -1,7 +1,7 @@
 import { auth, db, googleProvider, storage,
   collection, query, where, orderBy, limit, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, increment, deleteDoc, onSnapshot
 } from './firebase.js';
-import { courses as seedData } from './seed-courses.js';
+import { courses as seedData } from './courses-data.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { 
   onAuthStateChanged, 
