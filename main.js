@@ -48,15 +48,20 @@ const copyToClipboard = (text) => {
 
 const getYoutubeEmbedUrl = (url) => {
   if (!url) return '';
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
-  const match = url.match(regExp);
+  const trimmedUrl = url.trim();
+  // Robust YouTube URL regex for Standard, youtu.be, Shorts, Live, and Embed formats
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/|live\/)([^#&?]*).*/;
+  const match = trimmedUrl.match(regExp);
   const videoId = (match && match[2].length === 11) ? match[2] : null;
   
   if (videoId) {
     // modestbranding=1 (removes logo), rel=0 (related from same channel), iv_load_policy=3 (no annotations)
-    return `https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&iv_load_policy=3&showinfo=0`;
+    // Removed deprecated showinfo=0
+    return `https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&iv_load_policy=3`;
   }
-  return url;
+  
+  console.warn("YouTube ID extraction failed for URL:", trimmedUrl);
+  return trimmedUrl;
 };
 
 // ─── App State ───────────────────────────────────────────────────────────────
@@ -2805,13 +2810,16 @@ const _renderNow = () => {
                         </div>`;
                       
                       const embedUrl = getYoutubeEmbedUrl(currentLesson.videoUrl);
+                      console.log("Playing video with embed URL:", embedUrl);
 
                       return `
                         <iframe 
                           src="${embedUrl}" 
+                          title="${currentLesson.title || 'Video Player'}"
                           style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" 
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowfullscreen>
+                          allowfullscreen
+                          loading="lazy">
                         </iframe>`;
                     })()}
                   </div>
@@ -3267,8 +3275,8 @@ const attachEvents = () => {
     adminCourseForm.onsubmit = (e) => {
       e.preventDefault();
       const lessons = Array.from(document.querySelectorAll('.lesson-row')).map(row => ({
-        title: row.querySelector('.lesson-title-input').value,
-        videoUrl: row.querySelector('.lesson-url-input').value
+        title: row.querySelector('.lesson-title-input').value.trim(),
+        videoUrl: row.querySelector('.lesson-url-input').value.trim()
       })).filter(l => l.title || l.videoUrl);
 
       saveCourse({
