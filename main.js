@@ -46,6 +46,19 @@ const copyToClipboard = (text) => {
   });
 };
 
+const getYoutubeEmbedUrl = (url) => {
+  if (!url) return '';
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+  const match = url.match(regExp);
+  const videoId = (match && match[2].length === 11) ? match[2] : null;
+  
+  if (videoId) {
+    // modestbranding=1 (removes logo), rel=0 (related from same channel), iv_load_policy=3 (no annotations)
+    return `https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&iv_load_policy=3&showinfo=0`;
+  }
+  return url;
+};
+
 // ─── App State ───────────────────────────────────────────────────────────────
 
 const AppState = {
@@ -2791,12 +2804,7 @@ const _renderNow = () => {
                           <p>Select a lesson to start watching</p>
                         </div>`;
                       
-                      let embedUrl = currentLesson.videoUrl;
-                      if (embedUrl.includes('youtube.com/watch?v=')) {
-                        embedUrl = embedUrl.replace('watch?v=', 'embed/');
-                      } else if (embedUrl.includes('youtu.be/')) {
-                        embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
-                      }
+                      const embedUrl = getYoutubeEmbedUrl(currentLesson.videoUrl);
 
                       return `
                         <iframe 
