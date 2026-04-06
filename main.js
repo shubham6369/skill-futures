@@ -653,7 +653,7 @@ const AdminModal = () => {
 
               <div class="form-group" style="margin-bottom: 1rem;">
                 <label>Course Image URL</label>
-                <input type="url" id="courseImg" class="form-input-styled" value="${data?.img || ''}" placeholder="https://images.unsplash.com/photo-...">
+                <input type="text" id="courseImg" class="form-input-styled" value="${data?.img || '/course-default.png'}" placeholder="https://images.unsplash.com/photo-...">
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -689,7 +689,7 @@ const AdminModal = () => {
                       <button type="button" onclick="window.removeAdminLesson(${i})" style="position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; background: #ef4444; color: white; border: none; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 2;">&times;</button>
                       <div style="display: flex; flex-direction: column; gap: 8px;">
                         <input type="text" class="lesson-title-input form-input-styled" style="padding: 10px; font-size: 0.85rem;" value="${lesson.title}" placeholder="Lesson Title (e.g. Introduction to Sales)" required/>
-                        <input type="url" class="lesson-url-input form-input-styled" style="padding: 10px; font-size: 0.85rem;" value="${lesson.videoUrl}" placeholder="Video Link (YouTube/Direct)" required/>
+                        <input type="text" class="lesson-url-input form-input-styled" style="padding: 10px; font-size: 0.85rem;" value="${lesson.videoUrl}" placeholder="Video Link (YouTube/Direct)" required/>
                       </div>
                     </div>
                   `).join('')}
@@ -3152,34 +3152,20 @@ const attachEvents = () => {
 
   // Admin Window Helpers
   window.showCourseModal = (courseId) => {
-    const data = courseId ? AppState.courses.find(c => c.id === courseId) : { lessons: [] };
+    let data;
+    if (courseId) {
+      data = AppState.courses.find(c => c.id === courseId);
+    } else {
+      data = { 
+        lessons: [], 
+        img: '/course-default.png',
+        category: 'Premium',
+        price: 599
+      };
+    }
     if (!data.lessons) data.lessons = [];
     AppState.adminModal = { type: 'course', data };
     render();
-    
-    const form = document.querySelector('#adminCourseForm');
-    if (form) {
-      form.onsubmit = (e) => {
-        e.preventDefault();
-        
-        // Collect dynamic lessons
-        const lessonRows = document.querySelectorAll('.lesson-row');
-        const lessons = Array.from(lessonRows).map(row => ({
-          title: row.querySelector('.lesson-title-input').value,
-          videoUrl: row.querySelector('.lesson-url-input').value
-        })).filter(l => l.title || l.videoUrl); // Remove empty rows
-
-        saveCourse({
-          id: document.querySelector('#courseId').value,
-          title: document.querySelector('#courseTitle').value,
-          img: document.querySelector('#courseImg').value,
-          category: document.querySelector('#courseCategory').value,
-          price: Number(document.querySelector('#coursePrice').value) || 599,
-          totalLessons: lessons.length,
-          lessons: lessons
-        });
-      };
-    }
   };
 
   window.filterAdminUsers = (query) => {
@@ -3200,18 +3186,6 @@ const attachEvents = () => {
     const data = AppState.allUsers.find(u => u.id === userId);
     AppState.adminModal = { type: 'user-edit', data };
     render();
-    const form = document.querySelector('#adminUserEditForm');
-    if (form) {
-      form.onsubmit = (e) => {
-        e.preventDefault();
-        saveUser(userId, {
-          name: document.querySelector('#editUserName').value,
-          role: document.querySelector('#editUserRole').value,
-          allTimeEarnings: Number(document.querySelector('#editUserEarnings').value),
-          paidEarnings: Number(document.querySelector('#editUserPaid').value)
-        });
-      };
-    }
   };
 
   const settingsForm = document.querySelector('#adminSettingsForm');
@@ -3229,18 +3203,6 @@ const attachEvents = () => {
   window.showNoticeModal = () => {
     AppState.adminModal = { type: 'notice', data: null };
     render();
-    const form = document.querySelector('#adminNoticeForm');
-    if (form) {
-      form.onsubmit = (e) => {
-        e.preventDefault();
-        saveNotice({
-          title: document.querySelector('#noticeTitle').value,
-          message: document.querySelector('#noticeMessage').value
-        });
-        AppState.adminModal = null;
-        render();
-      };
-    }
   };
   
   window.deleteNotice = deleteNotice;
@@ -3264,6 +3226,68 @@ const attachEvents = () => {
       render();
     }
   };
+
+  // --- Admin Form Handlers ---
+  const adminCourseForm = document.querySelector('#adminCourseForm');
+  if (adminCourseForm) {
+    adminCourseForm.onsubmit = (e) => {
+      e.preventDefault();
+      const lessons = Array.from(document.querySelectorAll('.lesson-row')).map(row => ({
+        title: row.querySelector('.lesson-title-input').value,
+        videoUrl: row.querySelector('.lesson-url-input').value
+      })).filter(l => l.title || l.videoUrl);
+
+      saveCourse({
+        id: document.querySelector('#courseId')?.value,
+        title: document.querySelector('#courseTitle').value,
+        img: document.querySelector('#courseImg').value,
+        category: document.querySelector('#courseCategory').value,
+        price: Number(document.querySelector('#coursePrice').value) || 599,
+        totalLessons: lessons.length,
+        lessons: lessons
+      });
+    };
+  }
+
+  const adminUserEditForm = document.querySelector('#adminUserEditForm');
+  if (adminUserEditForm) {
+    adminUserEditForm.onsubmit = (e) => {
+      e.preventDefault();
+      const userId = AppState.adminModal?.data?.id;
+      if (!userId) return;
+      saveUser(userId, {
+        name: document.querySelector('#editUserName').value,
+        role: document.querySelector('#editUserRole').value,
+        allTimeEarnings: Number(document.querySelector('#editUserEarnings').value),
+        paidEarnings: Number(document.querySelector('#editUserPaid').value)
+      });
+    };
+  }
+
+  const adminNoticeForm = document.querySelector('#adminNoticeForm');
+  if (adminNoticeForm) {
+    adminNoticeForm.onsubmit = (e) => {
+      e.preventDefault();
+      saveNotice({
+        title: document.querySelector('#noticeTitle').value,
+        message: document.querySelector('#noticeMessage').value
+      });
+      AppState.adminModal = null;
+      render();
+    };
+  }
+
+  const adminSettingsForm = document.querySelector('#adminSettingsForm');
+  if (adminSettingsForm) {
+    adminSettingsForm.onsubmit = (e) => {
+      e.preventDefault();
+      saveAdminSettings({
+        direct: Number(document.querySelector('#directComm').value),
+        passive: Number(document.querySelector('#passiveComm').value),
+        referralDiscount: Number(document.querySelector('#referralDiscount').value)
+      });
+    };
+  }
 };
 
 onAuthStateChanged(auth, (user) => {
