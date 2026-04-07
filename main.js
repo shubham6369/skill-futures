@@ -1652,10 +1652,11 @@ const CourseListView = () => {
                 <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
                   <i class="fas fa-play-circle" style="color: var(--accent); margin-right: 4px;"></i> ${course.lessons?.length || course.totalLessons || 0} Lessons
                 </div>
-                <div style="background: #eef2ff; color: #4338ca; padding: 4px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">
-                  Start Learning
-                </div>
               </div>
+              
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-play"></i> Play Course
+              </button>
             </div>
           </div>
         `).join('')}
