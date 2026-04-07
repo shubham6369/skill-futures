@@ -313,7 +313,7 @@ const fetchCourses = async () => {
   if (_coursesUnsub) return;
   _coursesUnsub = onSnapshot(collection(db, 'courses'), (querySnapshot) => {
     const dbCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    AppState.courses = dbCourses.length > 0 ? dbCourses : AppState.courses;
+    AppState.courses = dbCourses;
     render();
   });
 };
@@ -566,6 +566,7 @@ const updatePayoutStatus = async (requestId, userId, amount, status) => {
 
 const deleteCourse = async (courseId) => {
   if (!confirm("Are you sure you want to delete this course?")) return;
+  console.log("Attempting to delete course:", courseId);
   try {
     await deleteDoc(doc(db, 'courses', courseId));
     alert("Course deleted!");
@@ -3244,43 +3245,7 @@ const attachEvents = () => {
   }
 
 
-  // Admin Window Helpers
-  window.showCourseModal = (courseId) => {
-    let data;
-    if (courseId) {
-      data = AppState.courses.find(c => c.id === courseId);
-    } else {
-      data = { 
-        lessons: [], 
-        img: '/course-default.png',
-        category: 'Premium',
-        price: 599
-      };
-    }
-    if (!data.lessons) data.lessons = [];
-    AppState.adminModal = { type: 'course', data };
-    render();
-  };
-
-  window.filterAdminUsers = (query) => {
-    const q = query.toLowerCase();
-    const rows = document.querySelectorAll('admin-users tbody tr'); // This might need a better selector
-    // Actually, it's easier to just re-render with a filtered list if I wanted to be clean, 
-    // but for simple search, I can just hide/show rows.
-    document.querySelectorAll('tbody tr').forEach(row => {
-      const text = row.innerText.toLowerCase();
-      row.style.display = text.includes(q) ? '' : 'none';
-    });
-  };
-
-  window.updatePayoutStatus = updatePayoutStatus;
-  window.deleteCourse = deleteCourse;
-
-  window.showUserEditModal = (userId) => {
-    const data = AppState.allUsers.find(u => u.id === userId);
-    AppState.adminModal = { type: 'user-edit', data };
-    render();
-  };
+  // window helpers moved to top level for reliability
 
   const settingsForm = document.querySelector('#adminSettingsForm');
   if (settingsForm) {
@@ -3294,32 +3259,11 @@ const attachEvents = () => {
     };
   }
   
-  window.showNoticeModal = () => {
-    AppState.adminModal = { type: 'notice', data: null };
-    render();
-  };
+  // window helpers moved to top level
   
-  window.deleteNotice = deleteNotice;
+  // window helpers moved to top level
   
-  window.addAdminLesson = () => {
-    if (AppState.adminModal && AppState.adminModal.type === 'course') {
-      AppState.adminModal.data.lessons.push({ title: '', videoUrl: '' });
-      render();
-    }
-  };
-
-  window.playLesson = (lessonTitle, courseId) => {
-    AppState.activeLessonId = lessonTitle;
-    render();
-    window.updateProgress(courseId, lessonTitle);
-  };
-
-  window.removeAdminLesson = (index) => {
-    if (AppState.adminModal && AppState.adminModal.type === 'course') {
-      AppState.adminModal.data.lessons.splice(index, 1);
-      render();
-    }
-  };
+  // window helpers moved to top level
 
   // --- Admin Form Handlers ---
   const adminCourseForm = document.querySelector('#adminCourseForm');
@@ -3382,6 +3326,72 @@ const attachEvents = () => {
       });
     };
   }
+};
+
+// ─── Global Event Bindings ───────────────────────────────────────────────────
+
+window.showCourseModal = (courseId) => {
+  let data;
+  if (courseId) {
+    data = AppState.courses.find(c => c.id === courseId);
+  } else {
+    data = { 
+      lessons: [], 
+      img: '/course-default.png',
+      category: 'Premium',
+      price: 599
+    };
+  }
+  if (!data && courseId) data = { title: 'Unknown Course', id: courseId, lessons: [] };
+  if (data && !data.lessons) data.lessons = [];
+  AppState.adminModal = { type: 'course', data };
+  render();
+};
+
+window.deleteCourse = deleteCourse;
+window.saveCourse = saveCourse;
+window.enrollInCourse = enrollInCourse;
+window.updateProgress = updateProgress;
+window.updatePayoutStatus = updatePayoutStatus;
+window.deleteNotice = deleteNotice;
+
+window.showUserEditModal = (userId) => {
+  const data = AppState.allUsers.find(u => u.id === userId);
+  AppState.adminModal = { type: 'user-edit', data };
+  render();
+};
+
+window.showNoticeModal = () => {
+  AppState.adminModal = { type: 'notice', data: null };
+  render();
+};
+
+window.addAdminLesson = () => {
+  if (AppState.adminModal && AppState.adminModal.type === 'course') {
+    AppState.adminModal.data.lessons.push({ title: '', videoUrl: '' });
+    render();
+  }
+};
+
+window.removeAdminLesson = (index) => {
+  if (AppState.adminModal && AppState.adminModal.type === 'course') {
+    AppState.adminModal.data.lessons.splice(index, 1);
+    render();
+  }
+};
+
+window.playLesson = (lessonTitle, courseId) => {
+  AppState.activeLessonId = lessonTitle;
+  render();
+  window.updateProgress(courseId, lessonTitle);
+};
+
+window.filterAdminUsers = (query) => {
+  const q = query.toLowerCase();
+  document.querySelectorAll('tbody tr').forEach(row => {
+    const text = row.innerText.toLowerCase();
+    row.style.display = text.includes(q) ? '' : 'none';
+  });
 };
 
 onAuthStateChanged(auth, (user) => {
