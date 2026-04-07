@@ -84,6 +84,7 @@ const AppState = {
   userPayouts: [],
   selectedCourseId: null,
   activeLessonId: null,
+  playingCourseId: null,
   uploadingProfile: false,
   showWelcomeModal: false,
   profileTab: 'details',
@@ -1625,6 +1626,26 @@ const LeaderboardView = () => {
 `;
 };
 
+// Global function to play a course video embedded on the card
+window.playCourseVideo = (courseId) => {
+  const course = AppState.courses.find(c => c.id === courseId);
+  if (!course) return;
+  
+  const videoUrl = course.lessons?.[0]?.videoUrl;
+  if (!videoUrl) {
+    alert('No video link available for this course.');
+    return;
+  }
+  
+  // Toggle: if already playing this course, stop it
+  if (AppState.playingCourseId === courseId) {
+    AppState.playingCourseId = null;
+  } else {
+    AppState.playingCourseId = courseId;
+  }
+  render();
+};
+
 const CourseListView = () => {
   return `
     <section class="main-content animate-fade">
@@ -1642,9 +1663,29 @@ const CourseListView = () => {
               <p>New courses are being added regularly. Check back soon!</p>
             </div>
           </div>
-        ` : AppState.courses.map((course, i) => `
+        ` : AppState.courses.map((course, i) => {
+          const isPlaying = AppState.playingCourseId === course.id;
+          const videoUrl = course.lessons?.[0]?.videoUrl;
+          const embedUrl = videoUrl ? getYoutubeEmbedUrl(videoUrl) : '';
+          
+          return `
           <div class="course-card-v2 animate-fade-up stagger-${(i % 6) + 1}" style="cursor: pointer;" onclick="AppState.selectedCourseId='${course.id}'; AppState.view='training'; render();">
-            <img src="${course.img || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}" class="course-img-v2" alt="${course.title}"/>
+            
+            ${isPlaying && embedUrl ? `
+              <div style="aspect-ratio: 16/9; width: 100%; position: relative; background: #000; border-radius: 16px 16px 0 0; overflow: hidden;">
+                <iframe 
+                  src="${embedUrl}&autoplay=1" 
+                  title="${course.title || 'Video Player'}"
+                  style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowfullscreen
+                  loading="lazy">
+                </iframe>
+              </div>
+            ` : `
+              <img src="${course.img || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}" class="course-img-v2" alt="${course.title}"/>
+            `}
+            
             <div style="padding: 1.25rem;">
               <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem;">${course.category || 'Premium'}</div>
               <h3 style="margin-bottom: 1.25rem; font-size: 1.1rem; text-align: left; color: #1e293b;">${course.title}</h3>
@@ -1654,12 +1695,12 @@ const CourseListView = () => {
                 </div>
               </div>
               
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="event.stopPropagation(); const videoUrl = (AppState.courses.find(c=>c.id==='${course.id}')?.lessons?.[0]?.videoUrl) || ''; if(videoUrl) { window.open(videoUrl, '_blank'); } else { alert('No video link available for this course.'); }">
-                <i class="fas fa-play"></i> Play Course
+              <button class="btn ${isPlaying ? 'btn-outline' : 'btn-primary'}" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="event.stopPropagation(); window.playCourseVideo('${course.id}');">
+                <i class="fas fa-${isPlaying ? 'stop' : 'play'}"></i> ${isPlaying ? 'Stop Video' : 'Play Course'}
               </button>
             </div>
           </div>
-        `).join('')}
+        `}).join('')}
       </div>
     </section>
   `;
