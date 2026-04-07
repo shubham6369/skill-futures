@@ -113,50 +113,7 @@ const AppState = {
     passive: 100,
     referralDiscount: 100
   },
-  trainings: [
-    { 
-      id: 'tr-1', 
-      title: 'Affiliate Marketing Masterclass | Complete Success Roadmap', 
-      desc: 'Learn the secrets of high-ticket affiliate marketing.', 
-      thumb: 'training_thumbnail_1_1774767017754.png',
-      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
-    },
-    { 
-      id: 'tr-2', 
-      title: 'Lead Generation Formula | 100+ Leads Daily Strategy', 
-      desc: 'How to automate your lead generation process.', 
-      thumb: 'training_thumbnail_2_1774767039736.png',
-      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
-    },
-    { 
-      id: 'tr-3', 
-      title: 'MLM Leadership Blueprint | Build a Massive Team', 
-      desc: 'The psychology of building long-term teams.', 
-      thumb: 'training_thumbnail_3_1774767068804.png',
-      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
-    },
-    { 
-      id: 'tr-4', 
-      title: 'Sales Closing Secrets | Handle Every Objection', 
-      desc: 'Close deals with confidence and authority.', 
-      thumb: 'training_thumbnail_1_1774767017754.png',
-      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
-    },
-    { 
-      id: 'tr-5', 
-      title: 'Personal Branding | Become an Industry Authority', 
-      desc: 'Build a brand that attracts premium clients.', 
-      thumb: 'training_thumbnail_2_1774767039736.png',
-      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
-    },
-    { 
-      id: 'tr-6', 
-      title: 'Instagram Growth Hack | 10k Followers in 30 Days', 
-      desc: 'Algorithm secrets to go viral consistently.', 
-      thumb: 'training_thumbnail_3_1774767068804.png',
-      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
-    }
-  ]
+  trainings: []
 };
 
 // ─── Data Actions ────────────────────────────────────────────────────────────
@@ -323,6 +280,15 @@ const fetchUserCourses = async () => {
   const querySnapshot = await getDocs(q);
   AppState.userCourses = querySnapshot.docs.map(doc => doc.data());
   render();
+};
+
+let _trainingsUnsub = null;
+const fetchTrainings = async () => {
+  if (_trainingsUnsub) return;
+  _trainingsUnsub = onSnapshot(collection(db, 'trainings'), (snap) => {
+    AppState.trainings = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    render();
+  });
 };
 
 const enrollInCourse = async (courseId) => {
@@ -593,6 +559,36 @@ const saveCourse = async (courseData) => {
   }
 };
 
+const deleteTraining = async (id) => {
+  if (!confirm("Are you sure you want to delete this training session?")) return;
+  try {
+    await deleteDoc(doc(db, 'trainings', id));
+    alert("Training deleted!");
+    // fetchTrainings is real-time via snapshot
+  } catch (err) {
+    alert("Error deleting training: " + err.message);
+  }
+};
+
+const saveTraining = async (trainingData) => {
+  try {
+    if (trainingData.id) {
+      const { id, ...data } = trainingData;
+      await updateDoc(doc(db, 'trainings', id), data);
+    } else {
+      await addDoc(collection(db, 'trainings'), {
+        ...trainingData,
+        createdAt: new Date().toISOString()
+      });
+    }
+    alert("Training saved successfully!");
+    AppState.adminModal = null;
+    render();
+  } catch (err) {
+    alert("Error saving training: " + err.message);
+  }
+};
+
 let _adminNoticesUnsub = null;
 const fetchAdminNotices = async () => {
   if (!AppState.isAdmin && !AppState.developerMode) return;
@@ -804,6 +800,46 @@ const AdminModal = () => {
               <div class="modal-actions" style="margin-top: 1rem;">
                 <button type="submit" class="btn btn-save" style="width: 100%; border-radius: 12px;">
                   <i class="fas fa-check-circle"></i> UPDATE IDENTITY
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (type === 'training') {
+    return `
+      <div class="modal-overlay" id="adminModalOverlay">
+        <div class="modal-container" style="max-width: 500px;">
+          <div class="modal-header">
+            <h2><i class="fas fa-video"></i> ${data?.id ? 'Edit Training Session' : 'Create New Training'}</h2>
+            <button class="modal-close" onclick="AppState.adminModal = null; render();">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="adminTrainingForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <input type="hidden" id="trainingId" value="${data?.id || ''}">
+              
+              <div class="form-group">
+                <label>Training Title</label>
+                <input type="text" id="trainingTitle" class="form-input-styled" value="${data?.title || ''}" required placeholder="e.g. Weekly Strategy Call">
+              </div>
+
+              <div class="form-group">
+                <label>YouTube Link</label>
+                <input type="text" id="trainingUrl" class="form-input-styled" value="${data?.videoUrl || ''}" required placeholder="https://youtube.com/watch?v=...">
+              </div>
+
+              <div class="form-group">
+                <label>Thumbnail Image URL (Optional)</label>
+                <input type="text" id="trainingThumb" class="form-input-styled" value="${data?.thumb || '/course-default.png'}" placeholder="https://...">
+                <small style="color: #64748b;">Defaults to course-default.png if left empty</small>
+              </div>
+
+              <div class="modal-actions" style="margin-top: 1rem;">
+                <button type="submit" class="btn btn-save" style="width: 100%; border-radius: 12px; background: #6366f1;">
+                   <i class="fas fa-save"></i> SAVE TRAINING SESSION
                 </button>
               </div>
             </form>
@@ -1079,6 +1115,9 @@ const AdminDashboardView = () => {
           <button class="btn btn-auth" style="padding: 1rem; background: #64748b;" onclick="AppState.view='admin-users'; render();">
             <i class="fas fa-users-cog"></i> User Audit
           </button>
+          <button class="btn btn-auth" style="padding: 1rem; background: #818cf8;" onclick="AppState.view='admin-trainings'; render();">
+            <i class="fas fa-video"></i> Manage Trainings
+          </button>
         </div>
       </div>
     </section>
@@ -1350,6 +1389,60 @@ const AdminSettingsView = () => {
     </section>
   `;
 };
+const AdminTrainingsView = () => {
+  return `
+    <section class="main-content animate-fade">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem;">
+        <div>
+          <h1 style="font-size: 2.5rem; font-weight: 800; color: #1e293b; letter-spacing: -0.02em; margin-bottom: 0.5rem;">Manage Training Videos 🎥</h1>
+          <p style="color: #64748b; font-size: 1.1rem;">Add or edit high-quality training sessions for your affiliates</p>
+        </div>
+        <button class="btn btn-primary" onclick="window.showTrainingModal()">
+          <i class="fas fa-plus" style="margin-right: 8px;"></i> Add New Training
+        </button>
+      </div>
+
+      <div class="chart-container" style="padding: 0; overflow: hidden; background: white; border: 1px solid #f1f5f9; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="text-align: left; border-bottom: 2px solid #f1f5f9; background: #f8fafc;">
+              <th style="padding: 1.5rem; color: #475569; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Thumbnail</th>
+              <th style="padding: 1.5rem; color: #475569; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Title</th>
+              <th style="padding: 1.5rem; color: #475569; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Video Link</th>
+              <th style="padding: 1.5rem; color: #475569; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${AppState.trainings.length === 0 ? '<tr><td colspan="4" style="padding: 5rem; text-align: center; color: #94a3b8;"><div style="font-size: 3rem; margin-bottom: 1rem;">📭</div><p style="font-size: 1.1rem; font-weight: 500;">No trainings found. Click "Add New Training" to start.</p></td></tr>' : 
+              AppState.trainings.map((t, i) => `
+              <tr style="border-bottom: 1px solid #f8fafc; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'" class="animate-fade stagger-${(i % 6) + 1}">
+                <td style="padding: 1.2rem;">
+                  <img src="${t.thumb || '/course-default.png'}" style="width: 100px; height: 56px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                </td>
+                <td style="padding: 1.2rem; font-weight: 700; color: #1e293b; font-size: 1.05rem;">${t.title}</td>
+                <td style="padding: 1.2rem; color: #6366f1; font-weight: 600; font-size: 0.9rem;">
+                   <a href="${t.videoUrl}" target="_blank" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                     Watch on YouTube <i class="fas fa-external-link-alt" style="font-size:0.7rem;"></i>
+                   </a>
+                </td>
+                <td style="padding: 1.2rem; text-align: right;">
+                   <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                     <button class="btn btn-outline" style="padding: 8px 16px; font-size: 0.85rem; border-color: #6366f1; color: #6366f1; border-radius: 10px;" onclick="window.showTrainingModal('${t.id}')">
+                       <i class="fas fa-edit" style="margin-right: 4px;"></i> Edit
+                     </button>
+                     <button class="btn btn-outline" style="padding: 8px 16px; font-size: 0.85rem; border-color: #ef4444; color: #ef4444; border-radius: 10px;" onclick="window.deleteTraining('${t.id}')">
+                       <i class="fas fa-trash" style="margin-right: 4px;"></i> Delete
+                     </button>
+                   </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+};
 
 const AdminSidebar = () => `
   <div class="mobile-overlay ${AppState.isSidebarVisible ? 'active' : ''}" id="adminMobileOverlay"></div>
@@ -1384,6 +1477,9 @@ const AdminSidebar = () => `
       </li>
       <li class="sidebar-item ${AppState.view === 'admin-courses' ? 'active' : ''}" data-route="admin-courses" style="color: #94a3b8;">
         <i class="fas fa-layer-group"></i> Manage Courses
+      </li>
+      <li class="sidebar-item ${AppState.view === 'admin-trainings' ? 'active' : ''}" data-route="admin-trainings" style="color: #94a3b8;">
+        <i class="fas fa-video"></i> Manage Trainings
       </li>
       <li class="sidebar-item ${AppState.view === 'admin-payouts' ? 'active' : ''}" data-route="admin-payouts" style="color: #94a3b8;">
         <i class="fas fa-hand-holding-dollar"></i> Payout Requests
@@ -2827,6 +2923,7 @@ const _renderNow = () => {
       case 'admin-payouts': content = AdminPayoutsView(); break;
       case 'admin-notices': content = AdminNoticesView(); break;
       case 'admin-settings': content = AdminSettingsView(); break;
+      case 'admin-trainings': content = AdminTrainingsView(); break;
       case 'training': content = (() => {
           const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || AppState.courses[0] || {};
           const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
@@ -3315,6 +3412,19 @@ const attachEvents = () => {
     };
   }
 
+  const adminTrainingForm = document.querySelector('#adminTrainingForm');
+  if (adminTrainingForm) {
+    adminTrainingForm.onsubmit = (e) => {
+      e.preventDefault();
+      saveTraining({
+        id: document.querySelector('#trainingId').value,
+        title: document.querySelector('#trainingTitle').value,
+        videoUrl: document.querySelector('#trainingUrl').value,
+        thumb: document.querySelector('#trainingThumb').value || '/course-default.png'
+      });
+    };
+  }
+
   const adminSettingsForm = document.querySelector('#adminSettingsForm');
   if (adminSettingsForm) {
     adminSettingsForm.onsubmit = (e) => {
@@ -3386,6 +3496,20 @@ window.playLesson = (lessonTitle, courseId) => {
   window.updateProgress(courseId, lessonTitle);
 };
 
+window.showTrainingModal = (trainingId) => {
+  let data;
+  if (trainingId) {
+    data = AppState.trainings.find(t => t.id === trainingId);
+  } else {
+    data = { title: '', videoUrl: '', thumb: '/course-default.png' };
+  }
+  AppState.adminModal = { type: 'training', data };
+  render();
+};
+
+window.deleteTraining = deleteTraining;
+window.saveTraining = saveTraining;
+
 window.filterAdminUsers = (query) => {
   const q = query.toLowerCase();
   document.querySelectorAll('tbody tr').forEach(row => {
@@ -3397,6 +3521,7 @@ window.filterAdminUsers = (query) => {
 onAuthStateChanged(auth, (user) => {
   AppState.user = user;
   fetchCourses(); // ENSURE GLOBAL SYNC
+  fetchTrainings(); // ENSURE GLOBAL SYNC
   if (user) {
     // Just fetch data. The fetchUserData onSnapshot will handle view redirection.
     fetchUserData(user.uid);
