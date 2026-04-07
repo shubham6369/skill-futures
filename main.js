@@ -1654,7 +1654,7 @@ const CourseListView = () => {
                 </div>
               </div>
               
-              <button class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="event.stopPropagation(); AppState.selectedCourseId='${course.id}'; AppState.activeLessonId = (AppState.courses.find(c=>c.id==='${course.id}')?.lessons?.[0]?.title) || null; AppState.view='training'; render();">
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="event.stopPropagation(); const videoUrl = (AppState.courses.find(c=>c.id==='${course.id}')?.lessons?.[0]?.videoUrl) || ''; if(videoUrl) { window.open(videoUrl, '_blank'); } else { alert('No video link available for this course.'); }">
                 <i class="fas fa-play"></i> Play Course
               </button>
             </div>
