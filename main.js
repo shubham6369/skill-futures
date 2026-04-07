@@ -117,37 +117,43 @@ const AppState = {
       id: 'tr-1', 
       title: 'Affiliate Marketing Masterclass | Complete Success Roadmap', 
       desc: 'Learn the secrets of high-ticket affiliate marketing.', 
-      thumb: 'training_thumbnail_1_1774767017754.png' 
+      thumb: 'training_thumbnail_1_1774767017754.png',
+      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
     },
     { 
       id: 'tr-2', 
       title: 'Lead Generation Formula | 100+ Leads Daily Strategy', 
       desc: 'How to automate your lead generation process.', 
-      thumb: 'training_thumbnail_2_1774767039736.png' 
+      thumb: 'training_thumbnail_2_1774767039736.png',
+      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
     },
     { 
       id: 'tr-3', 
       title: 'MLM Leadership Blueprint | Build a Massive Team', 
       desc: 'The psychology of building long-term teams.', 
-      thumb: 'training_thumbnail_3_1774767068804.png' 
+      thumb: 'training_thumbnail_3_1774767068804.png',
+      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
     },
     { 
       id: 'tr-4', 
       title: 'Sales Closing Secrets | Handle Every Objection', 
       desc: 'Close deals with confidence and authority.', 
-      thumb: 'training_thumbnail_1_1774767017754.png' 
+      thumb: 'training_thumbnail_1_1774767017754.png',
+      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
     },
     { 
       id: 'tr-5', 
       title: 'Personal Branding | Become an Industry Authority', 
       desc: 'Build a brand that attracts premium clients.', 
-      thumb: 'training_thumbnail_2_1774767039736.png' 
+      thumb: 'training_thumbnail_2_1774767039736.png',
+      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
     },
     { 
       id: 'tr-6', 
       title: 'Instagram Growth Hack | 10k Followers in 30 Days', 
       desc: 'Algorithm secrets to go viral consistently.', 
-      thumb: 'training_thumbnail_3_1774767068804.png' 
+      thumb: 'training_thumbnail_3_1774767068804.png',
+      videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ' 
     }
   ]
 };
@@ -1705,6 +1711,10 @@ const TrainingsView = () => `
                 <i class="fas fa-film" style="font-size:0.6rem;"></i> HD
               </span>
             </div>
+            
+            <button class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.open('${t.videoUrl}', '_blank')">
+              <i class="fas fa-play"></i> Play Training
+            </button>
           </div>
 
         </div>
