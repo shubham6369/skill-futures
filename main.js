@@ -544,11 +544,11 @@ const deleteCourse = async (courseId) => {
 
 const saveCourse = async (courseData) => {
   try {
-    if (courseData.id) {
-      const { id, ...data } = courseData;
+    const { id, ...data } = courseData;
+    if (id) {
       await updateDoc(doc(db, 'courses', id), data);
     } else {
-      await addDoc(collection(db, 'courses'), courseData);
+      await addDoc(collection(db, 'courses'), data);
     }
     alert("Course saved successfully!");
     await fetchCourses();
@@ -572,12 +572,12 @@ const deleteTraining = async (id) => {
 
 const saveTraining = async (trainingData) => {
   try {
-    if (trainingData.id) {
-      const { id, ...data } = trainingData;
+    const { id, ...data } = trainingData;
+    if (id) {
       await updateDoc(doc(db, 'trainings', id), data);
     } else {
       await addDoc(collection(db, 'trainings'), {
-        ...trainingData,
+        ...data,
         createdAt: new Date().toISOString()
       });
     }
@@ -3342,19 +3342,7 @@ const attachEvents = () => {
   }
 
 
-  // window helpers moved to top level for reliability
 
-  const settingsForm = document.querySelector('#adminSettingsForm');
-  if (settingsForm) {
-    settingsForm.onsubmit = (e) => {
-      e.preventDefault();
-      saveAdminSettings({
-        direct: Number(document.querySelector('#directComm').value),
-        passive: Number(document.querySelector('#passiveComm').value),
-        referralDiscount: Number(document.querySelector('#referralDiscount').value)
-      });
-    };
-  }
   
   // window helpers moved to top level
   
