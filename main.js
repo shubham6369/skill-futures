@@ -83,6 +83,7 @@ const AppState = {
   allNotices: [],
   userPayouts: [],
   selectedCourseId: null,
+  selectedTrainingId: null,
   activeLessonId: null,
   playingCourseId: null,
   uploadingProfile: false,
@@ -209,15 +210,22 @@ const fetchUserData = async (uid) => {
       AppState.isAdmin = false;
     }
 
-    // --- Onboarding Logic ---
-    // If the user arrives at home, login, or signup while authenticated,
-    // we guide them to the appropriate next stop.
-    if (['home', 'login', 'signup', 'admin-login'].includes(AppState.view)) {
+    // --- Onboarding & Authorization Logic ---
+    // If the user arrives at home, login, signup or admin-login while authenticated,
+    // we guide them to the appropriate next stop based on their role.
+    const isPublicView = ['home', 'login', 'signup', 'admin-login'].includes(AppState.view);
+
+    if (isPublicView) {
       if (AppState.isAdmin || AppState.developerMode) {
-        AppState.view = 'admin-dashboard';
+        // Redirection for Admin
+        if (AppState.view !== 'admin-dashboard') {
+          AppState.view = 'admin-dashboard';
+        }
       } else if (!userData.package) {
+        // Redirection for Students without package
         AppState.view = 'select-package';
       } else {
+        // Default Student Dashboard
         AppState.view = 'dashboard';
       }
     }
@@ -1723,23 +1731,32 @@ const LeaderboardView = () => {
 `;
 };
 
-// Global function to play a course video embedded on the card
+// Global function to play a course video
 window.playCourseVideo = (courseId) => {
   const course = AppState.courses.find(c => c.id === courseId);
   if (!course) return;
+
+  AppState.selectedCourseId = courseId;
+  AppState.selectedTrainingId = null; // Clear other types
+  AppState.view = 'training';
   
-  const videoUrl = course.lessons?.[0]?.videoUrl;
-  if (!videoUrl) {
-    alert('No video link available for this course.');
-    return;
+  if (course.lessons && course.lessons.length > 0) {
+    AppState.activeLessonId = course.lessons[0].title;
   }
   
-  // Toggle: if already playing this course, stop it
-  if (AppState.playingCourseId === courseId) {
-    AppState.playingCourseId = null;
-  } else {
-    AppState.playingCourseId = courseId;
-  }
+  render();
+};
+
+// Global function for standalone trainings
+window.playStandaloneTraining = (trainingId) => {
+  const training = AppState.trainings.find(t => t.id === trainingId);
+  if (!training) return;
+
+  AppState.selectedTrainingId = trainingId;
+  AppState.selectedCourseId = null; // Clear other types
+  AppState.view = 'training';
+  AppState.activeLessonId = null; 
+  
   render();
 };
 
@@ -1761,27 +1778,9 @@ const CourseListView = () => {
             </div>
           </div>
         ` : AppState.courses.map((course, i) => {
-          const isPlaying = AppState.playingCourseId === course.id;
-          const videoUrl = course.lessons?.[0]?.videoUrl;
-          const embedUrl = videoUrl ? getYoutubeEmbedUrl(videoUrl) : '';
-          
           return `
           <div class="course-card-v2 animate-fade-up stagger-${(i % 6) + 1}" style="cursor: pointer;" onclick="AppState.selectedCourseId='${course.id}'; AppState.view='training'; render();">
-            
-            ${isPlaying && embedUrl ? `
-              <div style="aspect-ratio: 16/9; width: 100%; position: relative; background: #000; border-radius: 16px 16px 0 0; overflow: hidden;">
-                <iframe 
-                  src="${embedUrl}&autoplay=1" 
-                  title="${course.title || 'Video Player'}"
-                  style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowfullscreen
-                  loading="lazy">
-                </iframe>
-              </div>
-            ` : `
-              <img src="${course.img || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}" class="course-img-v2" alt="${course.title}"/>
-            `}
+            <img src="${course.img || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}" class="course-img-v2" alt="${course.title}"/>
             
             <div style="padding: 1.25rem;">
               <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem;">${course.category || 'Premium'}</div>
@@ -1792,8 +1791,8 @@ const CourseListView = () => {
                 </div>
               </div>
               
-              <button class="btn ${isPlaying ? 'btn-outline' : 'btn-primary'}" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="event.stopPropagation(); window.playCourseVideo('${course.id}');">
-                <i class="fas fa-${isPlaying ? 'stop' : 'play'}"></i> ${isPlaying ? 'Stop Video' : 'Play Course'}
+              <button class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="event.stopPropagation(); window.playCourseVideo('${course.id}');">
+                <i class="fas fa-play"></i> Play Course
               </button>
             </div>
           </div>
@@ -1851,7 +1850,7 @@ const TrainingsView = () => `
               </span>
             </div>
             
-            <button class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.open('${t.videoUrl}', '_blank')">
+            <button class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.playStandaloneTraining('${t.id}')">
               <i class="fas fa-play"></i> Play Training
             </button>
           </div>
@@ -2925,90 +2924,132 @@ const _renderNow = () => {
       case 'admin-settings': content = AdminSettingsView(); break;
       case 'admin-trainings': content = AdminTrainingsView(); break;
       case 'training': content = (() => {
-          const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || AppState.courses[0] || {};
-          const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
-          const completed = enrollment.completedLessons || [];
-          const lessons = course.lessons || [];
-          
-          // Default to first lesson if none active
-          if (!AppState.activeLessonId && lessons.length > 0) {
-            AppState.activeLessonId = lessons[0].title;
+          let title = '';
+          let subtitle = '';
+          let videoUrl = '';
+          let description = '';
+          let sidebarHtml = '';
+          let isCourse = false;
+
+          if (AppState.selectedCourseId) {
+            const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || {};
+            const enrollment = AppState.userCourses.find(uc => uc.courseId === course.id) || {};
+            const completed = enrollment.completedLessons || [];
+            const lessons = course.lessons || [];
+            
+            if (!AppState.activeLessonId && lessons.length > 0) {
+              AppState.activeLessonId = lessons[0].title;
+            }
+            
+            const currentLesson = lessons.find(l => l.title === AppState.activeLessonId) || lessons[0] || {};
+            
+            title = course.title || 'Course Training';
+            subtitle = currentLesson.title ? `Watching: ${currentLesson.title}` : 'Master your skills';
+            videoUrl = currentLesson.videoUrl;
+            description = course.description || 'Follow along with this specialized training session.';
+            isCourse = true;
+
+            sidebarHtml = `
+              <div class="chart-container" style="padding: 1.5rem; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; height: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9;">
+                  <h3 style="margin: 0; font-size: 1.1rem;">Course Content</h3>
+                  <span style="font-size: 0.8rem; font-weight: 800; color: #16a34a; background: #f0fdf4; padding: 4px 10px; border-radius: 50px;">${enrollment.progress || 0}% Done</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1; overflow-y: auto; padding-right: 4px;">
+                  ${lessons.length === 0 ? `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                       <i class="fas fa-video-slash" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                       <p>No lessons uploaded yet.</p>
+                    </div>
+                  ` : lessons.map((l, i) => {
+                    const isActive = AppState.activeLessonId === l.title;
+                    const isDone = completed.includes(l.title);
+                    return `
+                      <div class="training-module ${isActive ? 'active' : ''} ${isDone ? 'completed' : ''}" 
+                           onclick="window.playLesson('${l.title}', '${course.id}')"
+                           style="padding: 1rem; background: ${isActive ? 'var(--accent)' : 'white'}; border-radius: 12px; border: 1.5px solid ${isActive ? 'var(--accent)' : '#f1f5f9'}; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s; position: relative;">
+                        <div style="width: 28px; height: 28px; border-radius: 8px; background: ${isActive ? 'white' : (isDone ? '#dcfce7' : '#f8fafc')}; display: flex; align-items: center; justify-content: center; color: ${isActive ? 'var(--accent)' : (isDone ? '#16a34a' : '#94a3b8')}; flex-shrink: 0; font-weight: 800; font-size: 0.8rem;">
+                          ${isDone ? '<i class="fas fa-check"></i>' : i+1}
+                        </div>
+                        <div style="flex-grow: 1; min-width: 0;">
+                          <div style="font-weight: 700; color: ${isActive ? 'white' : '#1e293b'}; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${l.title}</div>
+                        </div>
+                        ${isActive ? '<div class="lesson-active-dot"></div>' : ''}
+                      </div>`;
+                  }).join('')}
+                </div>
+              </div>`;
+          } else if (AppState.selectedTrainingId) {
+            const training = AppState.trainings.find(t => t.id === AppState.selectedTrainingId) || {};
+            title = training.title || 'Special Training';
+            subtitle = 'Standalone Training Session';
+            videoUrl = training.videoUrl;
+            description = 'Exclusive training session provided by Skill Futures.';
+            isCourse = false;
           }
-          
-          const currentLesson = lessons.find(l => l.title === AppState.activeLessonId) || lessons[0] || {};
+
+          const embedUrl = getYoutubeEmbedUrl(videoUrl);
 
           return `
-            <section class="main-content animate-fade">
-              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem;">
-                <div>
-                  <h1 style="margin: 0;">${course.title || 'Course Training'}</h1>
-                  <p style="color: #64748b; margin-top: 0.5rem;">${currentLesson.title ? `Currently Watching: ${currentLesson.title}` : 'Master your skills'}</p>
+            <section class="main-content animate-fade" style="padding-top: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                  <div style="width: 52px; height: 52px; border-radius: 14px; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: var(--shadow-sm);">
+                    <i class="fas ${isCourse ? 'fa-graduation-cap' : 'fa-play'}"></i>
+                  </div>
+                  <div>
+                    <h1 style="margin: 0; font-size: 1.75rem; letter-spacing: -0.5px; color: #1e293b;">${title}</h1>
+                    <div style="display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 0.9rem; margin-top: 4px;">
+                      <span style="font-weight: 700; color: var(--accent);">${subtitle}</span>
+                      ${isCourse ? `<span>•</span> <span>${AppState.courses.find(c => c.id === AppState.selectedCourseId)?.lessons?.length || 0} Lessons</span>` : ''}
+                    </div>
+                  </div>
                 </div>
-                <button onclick="AppState.view='courses'; render();" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                  <i class="fas fa-arrow-left"></i> Back to Courses
+                <button onclick="AppState.view='${isCourse ? 'courses' : 'trainings'}'; AppState.activeLessonId=null; render();" class="btn btn-outline" style="padding: 0.7rem 1.4rem; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 50px;">
+                  <i class="fas fa-arrow-left"></i> Back to Lessons
                 </button>
               </div>
 
-              <div class="metrics-grid training-player-grid" style="grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
-                <div class="chart-container" style="padding: 0; overflow: hidden; background: #000; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid #1e293b;">
-                  <div style="aspect-ratio: 16/9; width: 100%; position: relative; background: #000;">
-                    ${(() => {
-                      if (!currentLesson.videoUrl) return `
-                        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 1rem;">
-                          <i class="fas fa-play-circle" style="font-size: 5rem; color: #334155;"></i>
-                          <p>Select a lesson to start watching</p>
-                        </div>`;
-                      
-                      const embedUrl = getYoutubeEmbedUrl(currentLesson.videoUrl);
-                      console.log("Playing video with embed URL:", embedUrl);
-
-                      return `
+              <div class="metrics-grid" style="grid-template-columns: ${isCourse ? '2.5fr 1fr' : '1fr'}; gap: 2.5rem; align-items: start;">
+                <div style="display: flex; flex-direction: column; gap: 2rem;">
+                  <div class="chart-container" style="padding: 0; overflow: hidden; background: #000; border-radius: 32px; box-shadow: 0 50px 100px -20px rgba(0,0,0,0.6); border: 2px solid #1e293b; position: relative;">
+                    <div style="aspect-ratio: 16/9; width: 100%; position: relative; background: #000;">
+                      ${videoUrl ? `
                         <iframe 
                           src="${embedUrl}" 
-                          title="${currentLesson.title || 'Video Player'}"
+                          title="${title}"
                           style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" 
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowfullscreen
-                          loading="lazy">
-                        </iframe>`;
-                    })()}
+                          allowfullscreen>
+                        </iframe>` : `
+                        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 1.5rem;">
+                          <i class="fas fa-play-circle" style="font-size: 6rem; color: #1e293b; opacity: 0.3;"></i>
+                          <p style="font-size: 1.2rem; font-weight: 600;">Ready to start your Session</p>
+                        </div>`}
+                    </div>
                   </div>
-                  <div style="padding: 1.5rem; background: white; border-top: 1px solid #f1f5f9;">
-                    <h2 style="font-size: 1.25rem; margin-bottom: 0.5rem;">${currentLesson.title || 'Welcome'}</h2>
-                    <p style="color: #64748b; font-size: 0.9rem; line-height: 1.6;">${course.description || 'Welcome to this specialized training session. Follow along and take notes for the best results.'}</p>
+                  
+                  <div class="chart-container" style="padding: 3rem; border-radius: 32px; background: white;">
+                    <h2 style="font-size: 2rem; margin-bottom: 1.25rem; color: #1e293b; display: flex; align-items: center; gap: 15px; font-weight: 800;">
+                       Training Overview
+                    </h2>
+                    <p style="color: #475569; font-size: 1.15rem; line-height: 1.9;">${description}</p>
+                    
+                    <div style="margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid #f1f5f9; display: flex; gap: 2rem;">
+                       <div style="flex: 1; padding: 2rem; background: #f8fafc; border-radius: 24px; border: 1px solid #f1f5f9; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                          <p style="text-transform: uppercase; font-size: 0.8rem; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; margin-bottom: 0.75rem;">Platform Security</p>
+                          <p style="margin: 0; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Secure Internal Stream</p>
+                       </div>
+                       <div style="flex: 1; padding: 2rem; background: #f8fafc; border-radius: 24px; border: 1px solid #f1f5f9; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                          <p style="text-transform: uppercase; font-size: 0.8rem; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; margin-bottom: 0.75rem;">Learning Progress</p>
+                          <p style="margin: 0; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Automated Tracking</p>
+                       </div>
+                    </div>
                   </div>
                 </div>
 
-                <!-- lesson sidebar -->
-                <div class="chart-container" style="padding: 1.5rem; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9;">
-                    <h3 style="margin: 0; font-size: 1.1rem;">Course Content</h3>
-                    <span style="font-size: 0.8rem; font-weight: 800; color: #16a34a; background: #f0fdf4; padding: 4px 10px; border-radius: 50px;">${enrollment.progress || 0}% Done</span>
-                  </div>
-                  <div style="display: flex; flex-direction: column; gap: 10px; max-height: 600px; overflow-y: auto; padding-right: 4px;">
-                    ${lessons.length === 0 ? `
-                      <div style="text-align: center; padding: 3rem; color: #94a3b8;">
-                         <i class="fas fa-video-slash" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                         <p>No lessons uploaded yet.</p>
-                      </div>
-                    ` : lessons.map((l, i) => {
-                      const isActive = AppState.activeLessonId === l.title;
-                      const isDone = completed.includes(l.title);
-                      return `
-                        <div class="training-module ${isActive ? 'active' : ''} ${isDone ? 'completed' : ''}" 
-                             onclick="window.playLesson('${l.title}', '${course.id}')"
-                             style="padding: 1rem; background: ${isActive ? 'var(--accent)' : 'white'}; border-radius: 12px; border: 1.5px solid ${isActive ? 'var(--accent)' : '#f1f5f9'}; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s; position: relative;">
-                          <div style="width: 28px; height: 28px; border-radius: 8px; background: ${isActive ? 'white' : (isDone ? '#dcfce7' : '#f8fafc')}; display: flex; align-items: center; justify-content: center; color: ${isActive ? 'var(--accent)' : (isDone ? '#16a34a' : '#94a3b8')}; flex-shrink: 0; font-weight: 800; font-size: 0.8rem;">
-                            ${isDone ? '<i class="fas fa-check"></i>' : i+1}
-                          </div>
-                          <div style="flex-grow: 1; min-width: 0;">
-                            <div style="font-weight: 700; color: ${isActive ? 'white' : '#1e293b'}; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${l.title}</div>
-                            <div style="font-size: 0.7rem; color: ${isActive ? 'rgba(255,255,255,0.8)' : '#94a3b8'};">Standard Lesson</div>
-                          </div>
-                          ${isActive ? '<div class="lesson-active-dot"></div>' : ''}
-                        </div>`;
-                    }).join('')}
-                  </div>
+                <div style="position: sticky; top: 2rem;">
+                  ${sidebarHtml}
                 </div>
               </div>
             </section>`;
@@ -3172,22 +3213,30 @@ const attachEvents = () => {
   if (adminLoginForm) {
     adminLoginForm.onsubmit = async (e) => {
       e.preventDefault();
-      const email = document.querySelector('#adminLoginEmail').value;
+      const email = document.querySelector('#adminLoginEmail').value.trim();
       const pass = document.querySelector('#adminLoginPassword').value;
       
-      // Hardcoded Admin Bypass check
-      if (email === 'shubham67257@gmail.com' && pass === 'Shubham@18552025') {
-        console.log("Master Admin Authenticated");
-        AppState.isAdmin = true;
-        AppState.view = 'admin-dashboard';
-        render();
-        return;
-      }
-
       try { 
-        await signInWithEmailAndPassword(auth, email, pass); 
+        // 1. Sign in via Firebase
+        const cred = await signInWithEmailAndPassword(auth, email, pass); 
+        
+        // 2. Immediate Role Verification
+        const userSnap = await getDoc(doc(db, 'users', cred.user.uid));
+        const userData = userSnap.exists() ? userSnap.data() : {};
+        const isMasterAdmin = email === 'shubham67257@gmail.com';
+        
+        if (userData.role === 'admin' || isMasterAdmin) {
+          AppState.isAdmin = true;
+          AppState.view = 'admin-dashboard';
+          render();
+        } else {
+          // Failure: logged in but NOT an admin
+          await signOut(auth); // Clear session
+          alert('🚫 Access Denied: This account does not have administrator privileges.');
+        }
       } catch (err) { 
-        alert(err.message); 
+        console.error("Admin Login Error:", err);
+        alert('Authentication Failed: ' + (err.message || 'Invalid credentials')); 
       }
     };
   }
