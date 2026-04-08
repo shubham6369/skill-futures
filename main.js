@@ -89,7 +89,7 @@ const AppState = {
   showWelcomeModal: false,
   profileTab: 'details',
   isSidebarVisible: true,
-  developerMode: true,
+  developerMode: false,
   selectedPackage: null, // Track package selection during onboarding
   loading: {
     leaderboard: false,
