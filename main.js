@@ -49,17 +49,24 @@ const copyToClipboard = (text) => {
 const getYoutubeEmbedUrl = (url) => {
   if (!url) return '';
   const trimmedUrl = url.trim();
-  // Robust YouTube URL regex for Standard, youtu.be, Shorts, Live, and Embed formats
+  
+  // 1. Direct 11-character Video ID check (most common raw format)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmedUrl)) {
+    return `https://www.youtube.com/embed/${trimmedUrl}?modestbranding=1&rel=0&iv_load_policy=3`;
+  }
+
+  // 2. Robust YouTube URL regex for Standard, youtu.be, Shorts, Live, and Embed formats
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/|live\/)([^#&?]*).*/;
   const match = trimmedUrl.match(regExp);
   const videoId = (match && match[2].length === 11) ? match[2] : null;
   
   if (videoId) {
-    // modestbranding=1 (removes logo), rel=0 (related from same channel), iv_load_policy=3 (no annotations)
-    // Removed deprecated showinfo=0
     return `https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&iv_load_policy=3`;
   }
   
+  // 3. Fallback for already correct embed links or other players
+  if (trimmedUrl.includes('youtube.com/embed/')) return trimmedUrl;
+
   console.warn("YouTube ID extraction failed for URL:", trimmedUrl);
   return trimmedUrl;
 };
@@ -86,6 +93,7 @@ const AppState = {
   selectedTrainingId: null,
   activeLessonId: null,
   playingCourseId: null,
+  theaterMode: false,
   uploadingProfile: false,
   showWelcomeModal: false,
   profileTab: 'details',
@@ -643,7 +651,7 @@ const WelcomeModal = () => {
         <div class="modal-body">
           <div class="video-wrapper">
             <iframe 
-              src="https://www.youtube.com/embed/vNdteWdkweM?autoplay=1" 
+              src="https://www.youtube.com/embed/vNdteWdkweM" 
               title="YouTube video player" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
               allowfullscreen>
@@ -1578,10 +1586,15 @@ const Sidebar = () => `
       <li class="sidebar-item ${AppState.view === 'create-account' ? 'active' : ''}" data-route="create-account">
         <i class="fas fa-user-plus"></i> Create Account
       </li>
+      ${AppState.isAdmin ? `
+      <li style="margin: 1rem 0; border-top: 1px dashed #e2e8f0; padding-top: 1rem; color: #64748b; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding-left: 1.5rem;">Admin Access</li>
+      <li class="sidebar-item" data-route="admin-dashboard" style="color: var(--accent); font-weight: 800;">
+        <i class="fas fa-shield-halved"></i> Admin Portal
+      </li>` : ''}
     </ul>
     
     <div style="padding: 1.5rem; border-top: 1px solid #f1f5f9; margin-top: auto;">
-      <button id="logoutBtn" style="width: 100%; padding: 0.8rem; border-radius: 10px; background: #f9a8a8; color: #a81c1c; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+      <button id="logoutBtn" style="width: 100%; padding: 0.8rem; border-radius: 10px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
         <i class="fas fa-sign-out-alt"></i> Logout
       </button>
     </div>
@@ -2899,6 +2912,13 @@ const _renderNow = () => {
       return;
     }
 
+    // Handle Theater Mode Class on Body
+    if (AppState.view === 'training' && AppState.theaterMode) {
+      document.body.classList.add('theater-mode-body');
+    } else {
+      document.body.classList.remove('theater-mode-body');
+    }
+
     // Determine current view content
     let content = '';
     switch(AppState.view) {
@@ -2930,6 +2950,7 @@ const _renderNow = () => {
           let description = '';
           let sidebarHtml = '';
           let isCourse = false;
+          const isTheater = AppState.theaterMode;
 
           if (AppState.selectedCourseId) {
             const course = AppState.courses.find(c => c.id === AppState.selectedCourseId) || {};
@@ -2950,12 +2971,12 @@ const _renderNow = () => {
             isCourse = true;
 
             sidebarHtml = `
-              <div class="chart-container" style="padding: 1.5rem; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; height: 100%;">
+              <div class="chart-container training-sidebar-card" style="padding: 1.5rem; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; height: 100%; border: 1px solid #f1f5f9;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9;">
                   <h3 style="margin: 0; font-size: 1.1rem;">Course Content</h3>
                   <span style="font-size: 0.8rem; font-weight: 800; color: #16a34a; background: #f0fdf4; padding: 4px 10px; border-radius: 50px;">${enrollment.progress || 0}% Done</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1; overflow-y: auto; padding-right: 4px;">
+                <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1; overflow-y: auto; padding-right: 4px; max-height: 60vh;">
                   ${lessons.length === 0 ? `
                     <div style="text-align: center; padding: 3rem; color: #94a3b8;">
                        <i class="fas fa-video-slash" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
@@ -2991,8 +3012,10 @@ const _renderNow = () => {
           const embedUrl = getYoutubeEmbedUrl(videoUrl);
 
           return `
-            <section class="main-content animate-fade" style="padding-top: 1rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <section class="main-content animate-fade training-page-container ${isTheater ? 'theater-active' : ''}">
+              
+              <!-- Header Bar -->
+              <div class="training-header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: ${isTheater ? '0 2rem' : '0'};">
                 <div style="display: flex; align-items: center; gap: 15px;">
                   <div style="width: 52px; height: 52px; border-radius: 14px; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: var(--shadow-sm);">
                     <i class="fas ${isCourse ? 'fa-graduation-cap' : 'fa-play'}"></i>
@@ -3005,52 +3028,77 @@ const _renderNow = () => {
                     </div>
                   </div>
                 </div>
-                <button onclick="AppState.view='${isCourse ? 'courses' : 'trainings'}'; AppState.activeLessonId=null; render();" class="btn btn-outline" style="padding: 0.7rem 1.4rem; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 50px;">
-                  <i class="fas fa-arrow-left"></i> Back to Lessons
-                </button>
+                
+                <div style="display: flex; gap: 10px;">
+                  <button class="btn btn-outline theater-toggle-btn" style="padding: 0.7rem 1.4rem; border-radius: 50px; font-weight: 700; display: flex; align-items: center; gap: 8px;" onclick="AppState.theaterMode = !AppState.theaterMode; render();">
+                    <i class="fas ${isTheater ? 'fa-compress' : 'fa-expand'}"></i> <span>${isTheater ? 'Exit Theater' : 'Theater Mode'}</span>
+                  </button>
+                  <button onclick="AppState.view='${isCourse ? 'courses' : 'trainings'}'; AppState.activeLessonId=null; AppState.theaterMode=false; render();" class="btn btn-outline" style="padding: 0.7rem 1.4rem; border-radius: 50px; font-weight: 700;">
+                    <i class="fas fa-arrow-left"></i> Back
+                  </button>
+                </div>
               </div>
 
-              <div class="metrics-grid" style="grid-template-columns: ${isCourse ? '2.5fr 1fr' : '1fr'}; gap: 2.5rem; align-items: start;">
-                <div style="display: flex; flex-direction: column; gap: 2rem;">
-                  <div class="chart-container" style="padding: 0; overflow: hidden; background: #000; border-radius: 32px; box-shadow: 0 50px 100px -20px rgba(0,0,0,0.6); border: 2px solid #1e293b; position: relative;">
-                    <div style="aspect-ratio: 16/9; width: 100%; position: relative; background: #000;">
-                      ${videoUrl ? `
-                        <iframe 
-                          src="${embedUrl}" 
-                          title="${title}"
-                          style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" 
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowfullscreen>
-                        </iframe>` : `
-                        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 1.5rem;">
-                          <i class="fas fa-play-circle" style="font-size: 6rem; color: #1e293b; opacity: 0.3;"></i>
-                          <p style="font-size: 1.2rem; font-weight: 600;">Ready to start your Session</p>
-                        </div>`}
+              <!-- Main Play Area -->
+              <div class="training-layout-grid" style="display: grid; grid-template-columns: ${isCourse && !isTheater ? 'minmax(0, 2.5fr) minmax(300px, 1fr)' : '1fr'}; gap: 2.5rem; align-items: start;">
+                
+                <div class="video-section-container" style="display: flex; flex-direction: column; gap: 2rem;">
+                  
+                  <!-- Sticky Video Player Wrapper -->
+                  <div class="sticky-player-wrapper" style="${isTheater ? 'margin: 0 -1rem;' : ''}">
+                    <div class="chart-container video-player-card" style="padding: 0; overflow: hidden; background: #000; border-radius: ${isTheater ? '0' : '32px'}; box-shadow: 0 50px 100px -20px rgba(0,0,0,0.6); position: relative;">
+                      <div style="aspect-ratio: 16/9; width: 100%; position: relative; background: #000;">
+                        ${videoUrl ? `
+                          <iframe 
+                            src="${embedUrl}" 
+                            title="${title}"
+                            style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                          </iframe>` : `
+                          <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 1.5rem;">
+                            <i class="fas fa-play-circle" style="font-size: 6rem; color: #1e293b; opacity: 0.3;"></i>
+                            <p style="font-size: 1.2rem; font-weight: 600;">Ready to start your Session</p>
+                          </div>`}
+                      </div>
                     </div>
                   </div>
                   
-                  <div class="chart-container" style="padding: 3rem; border-radius: 32px; background: white;">
-                    <h2 style="font-size: 2rem; margin-bottom: 1.25rem; color: #1e293b; display: flex; align-items: center; gap: 15px; font-weight: 800;">
-                       Training Overview
-                    </h2>
-                    <p style="color: #475569; font-size: 1.15rem; line-height: 1.9;">${description}</p>
+                  <!-- Overview Section -->
+                  <div class="chart-container description-card" style="padding: 2.5rem; border-radius: 32px; background: white; border: 1px solid #f1f5f9; ${isTheater ? 'margin: 0 2rem;' : ''}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                       <h2 style="font-size: 1.75rem; margin:0; color: #1e293b; display: flex; align-items: center; gap: 12px; font-weight: 800;">
+                          <i class="fas fa-info-circle" style="color: var(--accent);"></i> About this Session
+                       </h2>
+                    </div>
+                    <p style="color: #475569; font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">${description}</p>
                     
-                    <div style="margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid #f1f5f9; display: flex; gap: 2rem;">
-                       <div style="flex: 1; padding: 2rem; background: #f8fafc; border-radius: 24px; border: 1px solid #f1f5f9; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                          <p style="text-transform: uppercase; font-size: 0.8rem; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; margin-bottom: 0.75rem;">Platform Security</p>
-                          <p style="margin: 0; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Secure Internal Stream</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; padding-top: 2rem; border-top: 1px solid #f1f5f9;">
+                       <div style="padding: 1.5rem; background: #f8fafc; border-radius: 20px; border: 1px solid #f1f5f9;">
+                          <p style="text-transform: uppercase; font-size: 0.7rem; font-weight: 800; color: #94a3b8; letter-spacing: 1px; margin-bottom: 0.5rem;">Security Status</p>
+                          <p style="margin: 0; font-weight: 700; color: #1e293b; font-size: 1rem;">Encrypted Stream <i class="fas fa-shield-alt" style="color: #10b981; margin-left: 4px;"></i></p>
                        </div>
-                       <div style="flex: 1; padding: 2rem; background: #f8fafc; border-radius: 24px; border: 1px solid #f1f5f9; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                          <p style="text-transform: uppercase; font-size: 0.8rem; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; margin-bottom: 0.75rem;">Learning Progress</p>
-                          <p style="margin: 0; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Automated Tracking</p>
+                       <div style="padding: 1.5rem; background: #f8fafc; border-radius: 20px; border: 1px solid #f1f5f9;">
+                          <p style="text-transform: uppercase; font-size: 0.7rem; font-weight: 800; color: #94a3b8; letter-spacing: 1px; margin-bottom: 0.5rem;">Content Format</p>
+                          <p style="margin: 0; font-weight: 700; color: #1e293b; font-size: 1rem;">High Fidelity <i class="fas fa-volume-up" style="color: var(--accent); margin-left: 4px;"></i></p>
                        </div>
                     </div>
                   </div>
+
+                  ${isTheater && isCourse ? `
+                    <div style="margin: 2rem 2rem 4rem;">
+                      <h3 style="font-size: 1.25rem; margin-bottom: 1.5rem; font-weight: 800; color: #1e293b;">Continue Learning</h3>
+                      ${sidebarHtml}
+                    </div>
+                  ` : ''}
                 </div>
 
-                <div style="position: sticky; top: 2rem;">
-                  ${sidebarHtml}
-                </div>
+                ${!isTheater && isCourse ? `
+                  <div class="sticky-sidebar-container" style="position: sticky; top: 1.5rem;">
+                    ${sidebarHtml}
+                  </div>
+                ` : ''}
+
               </div>
             </section>`;
         })(); break;
@@ -3563,10 +3611,30 @@ onAuthStateChanged(auth, (user) => {
     // Just fetch data. The fetchUserData onSnapshot will handle view redirection.
     fetchUserData(user.uid);
   } else {
-    // Cleanup and return to Home for guests
+    // Aggressive cleanup on logout
     AppState.userData = null;
     AppState.isAdmin = false;
-    if (!['login', 'signup'].includes(AppState.view)) {
+    AppState.team = [];
+    AppState.userCourses = [];
+    AppState.allUsers = [];
+    AppState.allPayouts = [];
+    AppState.userPayouts = [];
+    AppState.allNotices = [];
+    AppState.selectedCourseId = null;
+    AppState.selectedTrainingId = null;
+    AppState.activeLessonId = null;
+    AppState.theaterMode = false;
+    
+    // Reset fetched flags
+    AppState.fetched = {
+      userPayouts: false,
+      adminUsers: false,
+      adminPayouts: false,
+      adminSettings: false,
+      adminNotices: false
+    };
+
+    if (!['login', 'signup', 'admin-login'].includes(AppState.view)) {
       AppState.view = 'home';
     }
   }

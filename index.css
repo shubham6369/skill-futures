@@ -707,6 +707,73 @@ body {
   }
 }
 
+/* ─── Video Training Suite ────────────────────────────────────────────────── */
+
+.training-page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sticky-player-wrapper {
+  position: sticky;
+  top: 1rem;
+  z-index: 10;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-player-card {
+  box-shadow: var(--shadow-2xl);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #000;
+  border: 4px solid #1e293b;
+}
+
+.video-player-card:hover {
+  box-shadow: 0 40px 100px -20px rgba(99, 102, 241, 0.35);
+  border-color: var(--accent);
+}
+
+.description-card {
+  margin-top: 1.5rem;
+  background: white;
+  border: 1px solid #f1f5f9;
+}
+
+.training-sidebar-card {
+  height: calc(100vh - 4rem);
+  position: sticky;
+  top: 1rem;
+}
+
+.training-module {
+  transition: all 0.2s ease;
+}
+
+.training-module:hover {
+  background: #f8fafc !important;
+  transform: translateX(4px);
+}
+
+.training-module.active {
+  background: var(--accent) !important;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.training-module.active:hover {
+  transform: none;
+}
+
+/* Theater Mode Active State */
+.theater-mode-body .sidebar {
+  display: none;
+}
+
+.theater-mode-body .main-content {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* ─── High-Fidelity Auth UI ───────────────────────────────────────────────── */
 .auth-wrapper {
   height: 100vh;
